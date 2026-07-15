@@ -397,3 +397,135 @@ class TestRawDebounceArmedDetection:
         sm._process_chunk("t1", "● Working on task...")
 
         assert sm._last_status["t1"] == TerminalStatus.PROCESSING
+
+
+class TestMarkInputPending:
+    """Issue #407: after send_input on a reused terminal, get_status must not
+    return the previous turn's cached ready status until a fresh detection
+    confirms the new turn. The fix uses a read-path suppression flag and must
+    NOT mutate _last_status (that would corrupt the sticky-latch arm — see
+    TestStickyLatching.test_arm_survives_ready_to_ready_flap)."""
+
+    def test_sets_flag_without_touching_last_status(self):
+        sm = StatusMonitor()
+        sm._last_status["t1"] = TerminalStatus.COMPLETED
+        sm.mark_input_pending("t1")
+        # The latch's view of the terminal is untouched...
+        assert sm._last_status["t1"] == TerminalStatus.COMPLETED
+        # ...only the read-path suppression flag is set.
+        assert sm._input_pending["t1"] is True
+
+    def test_missing_terminal_does_not_touch_last_status(self):
+        sm = StatusMonitor()
+        sm.mark_input_pending("missing")
+        assert "missing" not in sm._last_status
+        assert sm._input_pending["missing"] is True
+
+    @patch("cli_agent_orchestrator.backends.registry.get_backend")
+    def test_stale_ready_suppressed_while_pending_empty_buffer(self, mock_get_backend):
+        """#407 core: with input pending and no new output, get_status reports
+        PROCESSING instead of the previous turn's COMPLETED, so
+        wait_until_status(COMPLETED) keeps waiting."""
+        mock_get_backend.return_value = _backend(event_inbox=False)
+        sm = StatusMonitor()
+        sm._last_status["t1"] = TerminalStatus.COMPLETED
+
+        # Before send_input: the stale value would satisfy the wait.
+        assert sm.get_status("t1") == TerminalStatus.COMPLETED
+
+        # send_input clears the byte buffer and marks input pending.
+        sm.clear_rolling_buffer("t1")
+        sm.mark_input_pending("t1")
+
+        assert sm.get_status("t1") == TerminalStatus.PROCESSING
+
+    @patch("cli_agent_orchestrator.services.status_monitor.provider_manager")
+    @patch("cli_agent_orchestrator.backends.registry.get_backend")
+    def test_fast_reply_ready_from_new_buffer_returned_and_clears_flag(
+        self, mock_get_backend, mock_pm
+    ):
+        """A fast reply can complete without a visible PROCESSING frame. A fresh
+        ready detection from the (cleared) buffer is genuine new-turn output —
+        get_status must return it, latch it, and clear the pending flag so the
+        terminal doesn't hang in a permanent PROCESSING mask."""
+        mock_get_backend.return_value = _backend(event_inbox=False)
+        provider = MagicMock()
+        provider.get_status.return_value = TerminalStatus.COMPLETED
+        provider.supports_screen_detection = False
+        mock_pm.get_provider.return_value = provider
+
+        sm = StatusMonitor()
+        sm._last_status["t1"] = TerminalStatus.COMPLETED
+        sm.mark_input_pending("t1")
+        # New-turn output present in the (post-clear) buffer.
+        sm._buffers["t1"] = "new turn output with a completed marker"
+
+        assert sm.get_status("t1") == TerminalStatus.COMPLETED
+        # Flag cleared → subsequent reads trust the cache again.
+        assert "t1" not in sm._input_pending
+        assert sm._last_status["t1"] == TerminalStatus.COMPLETED
+
+    def test_processing_detection_clears_pending_flag(self):
+        """The normal path: _apply_detection latching PROCESSING (genuine new
+        turn) clears the pending flag."""
+        sm = StatusMonitor()
+        sm._last_status["t1"] = TerminalStatus.COMPLETED
+        sm._allow_processing_revert["t1"] = True  # armed by notify_input_sent
+        sm.mark_input_pending("t1")
+
+        sm._apply_detection("t1", TerminalStatus.PROCESSING)
+
+        assert sm._last_status["t1"] == TerminalStatus.PROCESSING
+        assert "t1" not in sm._input_pending
+
+    def test_arm_survives_flap_with_mark_input_pending(self):
+        """Regression for the bug found in review: mark_input_pending must NOT
+        consume the sticky arm. Replicates the real send_input sequence on a warm
+        terminal (last=COMPLETED, arm set, mark pending), then a post-paste
+        ready→ready flap (IDLE), then the genuine PROCESSING — which must be
+        honored (not latch-blocked)."""
+        m = _SequencedMonitor()
+        m.sm._last_status["t1"] = TerminalStatus.COMPLETED
+        m.sm.notify_input_sent("t1")
+        m.sm.mark_input_pending("t1")
+        m.feed(TerminalStatus.IDLE)  # post-paste flap — must not consume the arm
+        m.feed(TerminalStatus.PROCESSING)  # genuine cycle start
+        assert m.status() == TerminalStatus.PROCESSING
+
+    @patch("cli_agent_orchestrator.services.status_monitor.bus")
+    @patch("cli_agent_orchestrator.services.status_monitor.provider_manager")
+    @patch("cli_agent_orchestrator.backends.registry.get_backend")
+    def test_cross_turn_completed_to_idle_adopts_fresh(self, mock_get_backend, mock_pm, mock_bus):
+        """Cross-turn edge (relates to #409): previous turn latched COMPLETED, new
+        turn settles at IDLE (e.g. a codex worker). The latch's within-turn
+        COMPLETED->IDLE guard must not strand the stale COMPLETED — get_status
+        adopts the fresh IDLE, latches it, and returns it consistently on repeat
+        calls."""
+        mock_get_backend.return_value = _backend(event_inbox=False)
+        provider = MagicMock()
+        provider.get_status.return_value = TerminalStatus.IDLE
+        provider.supports_screen_detection = False
+        mock_pm.get_provider.return_value = provider
+
+        sm = StatusMonitor()
+        sm._last_status["t1"] = TerminalStatus.COMPLETED
+        sm._buffers["t1"] = "fresh idle prompt from the new turn"
+        sm.mark_input_pending("t1")
+
+        assert sm.get_status("t1") == TerminalStatus.IDLE
+        # Consistent on the next read (not the stale COMPLETED reappearing).
+        assert sm.get_status("t1") == TerminalStatus.IDLE
+        assert sm._last_status["t1"] == TerminalStatus.IDLE
+        assert "t1" not in sm._input_pending
+
+    def test_clear_terminal_drops_pending_flag(self):
+        sm = StatusMonitor()
+        sm.mark_input_pending("t1")
+        sm.clear_terminal("t1")
+        assert "t1" not in sm._input_pending
+
+    def test_reset_buffer_drops_pending_flag(self):
+        sm = StatusMonitor()
+        sm.mark_input_pending("t1")
+        sm.reset_buffer("t1")
+        assert "t1" not in sm._input_pending

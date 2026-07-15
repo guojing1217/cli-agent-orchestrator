@@ -718,6 +718,17 @@ def send_input(
         # latch-block the IDLE→PROCESSING transition for the whole turn.
         status_monitor.clear_rolling_buffer(terminal_id)
 
+        # Clearing the byte buffer above does NOT touch the cached _last_status.
+        # On a reused (warm) terminal that already answered once, that cache still
+        # holds the previous turn's COMPLETED/IDLE, so a follow-up
+        # wait_until_status(COMPLETED) is satisfied immediately and returns the
+        # prior turn's output before this turn produces anything (issue #407).
+        # Flag the pending input so get_status suppresses that stale ready status
+        # until a fresh detection confirms the new turn. (A read-path flag, not a
+        # _last_status mutation — overwriting the cache would corrupt the
+        # sticky-latch arm; see mark_input_pending.)
+        status_monitor.mark_input_pending(terminal_id)
+
         get_backend().send_keys(
             metadata["tmux_session"],
             metadata["tmux_window"],

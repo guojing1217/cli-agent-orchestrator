@@ -68,6 +68,13 @@ class StatusMonitor:
         # IDLE/COMPLETED would freeze the terminal forever even when the
         # agent is genuinely processing new work.
         self._allow_processing_revert: Dict[str, bool] = {}
+        # Per-terminal flag: True from send_input (mark_input_pending) until the
+        # first genuine new-turn detection. While set, get_status suppresses a
+        # cached ready _last_status left over from the PREVIOUS turn so a reused
+        # terminal's wait_until_status can't be satisfied by stale state before
+        # the new turn produces output (issue #407). Kept separate from
+        # _last_status so the sticky-latch state machine is untouched.
+        self._input_pending: Dict[str, bool] = {}
         # --- pyte rendered-screen detection state (only used when CAO_PYTE_STATUS
         # is on AND the provider opts in via supports_screen_detection) ---
         # Per-terminal pyte Screen+Stream that composites the raw byte stream
@@ -214,6 +221,9 @@ class StatusMonitor:
             self._last_status[terminal_id] = detected
             if detected == TerminalStatus.PROCESSING:
                 self._allow_processing_revert[terminal_id] = False
+                # The new turn is definitively underway — the cached status now
+                # tracks THIS turn, so get_status can trust it again (#407).
+                self._input_pending.pop(terminal_id, None)
             elif detected in _STICKY_READY_STATUSES and last not in _STICKY_READY_STATUSES:
                 self._allow_processing_revert[terminal_id] = False
 
@@ -488,6 +498,35 @@ class StatusMonitor:
         with self._lock:
             self._buffers[terminal_id] = ""
 
+    def mark_input_pending(self, terminal_id: str) -> None:
+        """Mark that new input was sent so ``get_status`` won't return the
+        previous turn's stale ready status until a fresh detection confirms it.
+
+        Called by ``send_input`` right after ``notify_input_sent`` and
+        ``clear_rolling_buffer``. Clearing the byte buffer alone leaves the
+        previous turn's cached ``_last_status`` (e.g. COMPLETED) intact, so a
+        follow-up ``wait_until_status(COMPLETED)`` on a reused terminal is
+        satisfied immediately by the stale value and returns the prior turn's
+        output before the new turn has produced anything (issue #407).
+
+        The stale value CANNOT be fixed by mutating ``_last_status`` (downgrade
+        to PROCESSING or pop to None): the sticky latch relies on
+        ``_last_status`` staying at the previous ready status so it can ignore
+        the post-paste frames that still composite the previous turn's ready box
+        (see the UNKNOWN note in ``_apply_detection``). Overwriting it turns a
+        harmless ready->ready flap into a non-ready->ready upgrade that CONSUMES
+        the revert arm, latch-blocking the genuine PROCESSING and letting
+        InboxService paste into a busy agent — a worse bug than #407. See
+        test_arm_survives_ready_to_ready_flap.
+
+        So this only sets a read-path suppression flag; ``_last_status`` and the
+        arm are untouched. The flag is cleared when a genuine new-turn detection
+        is observed — PROCESSING latching in ``_apply_detection``, or a fresh
+        ready detection from the (cleared) buffer in ``get_status``.
+        """
+        with self._lock:
+            self._input_pending[terminal_id] = True
+
     def _detect_status(self, terminal_id: str, buffer: str) -> TerminalStatus:
         """Detect status: provider-specific patterns or UNKNOWN if no provider."""
         provider = provider_manager.get_provider(terminal_id)
@@ -506,6 +545,7 @@ class StatusMonitor:
             self._buffers.pop(terminal_id, None)
             self._last_status.pop(terminal_id, None)
             self._allow_processing_revert.pop(terminal_id, None)
+            self._input_pending.pop(terminal_id, None)
             self._screens.pop(terminal_id, None)
             self._bursting.pop(terminal_id, None)
             handle = self._quiesce_handle.pop(terminal_id, None)
@@ -524,6 +564,7 @@ class StatusMonitor:
             self._buffers[terminal_id] = ""
             self._last_status.pop(terminal_id, None)
             self._allow_processing_revert.pop(terminal_id, None)
+            self._input_pending.pop(terminal_id, None)
             # Drop the rendered screen too so the relaunched CLI mode is
             # detected against a fresh viewport, not the failed attempt's.
             self._screens.pop(terminal_id, None)
@@ -565,16 +606,46 @@ class StatusMonitor:
 
         with self._lock:
             cached = self._last_status.get(terminal_id, TerminalStatus.UNKNOWN)
-            # When cached status is PROCESSING, the debounced detection may be
-            # stuck: TUI providers (kiro-cli) can send escape sequences
-            # continuously after becoming idle, preventing the 200ms quiescence
-            # timer from ever firing. Do a fresh detection from the current
-            # buffer so poll-based callers (wait_until_status) catch the
-            # PROCESSING→ready transition without waiting for stream silence.
-            if cached == TerminalStatus.PROCESSING:
+            input_pending = self._input_pending.get(terminal_id, False)
+            # Re-detect from the rolling buffer (outside the lock, below) in two
+            # cases. In both, an empty buffer means "nothing new to detect".
+            #   1. Issue #407 — input is pending and the cached value is a stale
+            #      ready status from the PREVIOUS turn. send_input cleared the
+            #      buffer, so any content is from THIS turn.
+            #   2. cached PROCESSING — the debounced detection may be stuck: TUI
+            #      providers (kiro-cli) can stream escape sequences continuously
+            #      after becoming idle, so the 200ms quiescence timer never fires.
+            stale_ready = input_pending and cached in _STICKY_READY_STATUSES
+            if stale_ready or cached == TerminalStatus.PROCESSING:
                 buffer = self._buffers.get(terminal_id, "")
             else:
                 buffer = ""
+
+        # Issue #407: while input is pending, never return the previous turn's
+        # cached ready status. A fresh ready detection from the (cleared) buffer
+        # means a fast reply that produced no visible PROCESSING frame — genuine
+        # new-turn completion, so adopt it and clear the flag (a real fast turn
+        # must not hang). Anything else means the new turn is still in flight —
+        # report PROCESSING so wait_until_status keeps polling. _apply_detection
+        # clears the pending flag on the normal PROCESSING transition.
+        if stale_ready:
+            fresh = self._detect_status(terminal_id, buffer) if buffer else None
+            if fresh in _STICKY_READY_STATUSES:
+                # Adopt the fresh status directly rather than via _apply_detection:
+                # its flap-guards (e.g. COMPLETED->IDLE) are meant for flaps
+                # WITHIN a turn, but here the previous ready value belongs to the
+                # PRIOR turn, so those guards would wrongly reject a legitimate
+                # cross-turn transition (e.g. a codex worker that settles idle —
+                # #409) and leave the stale value latched. Reaching here already
+                # means "input pending AND new-turn buffer yielded a ready status",
+                # an unambiguous completion, so set it and reset the arm.
+                with self._lock:
+                    self._last_status[terminal_id] = fresh
+                    self._allow_processing_revert[terminal_id] = False
+                    self._input_pending.pop(terminal_id, None)
+                bus.publish(f"terminal.{terminal_id}.status", {"status": fresh.value})
+                return fresh
+            return TerminalStatus.PROCESSING
 
         if cached == TerminalStatus.PROCESSING and buffer:
             fresh = self._detect_status(terminal_id, buffer)
