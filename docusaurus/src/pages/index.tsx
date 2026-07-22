@@ -14,6 +14,8 @@ function HeroBanner() {
         loop
         muted
         playsInline
+        disablePictureInPicture
+        ref={(el) => { if (el) el.play().catch(() => {}); }}
       >
         <source src="/cli-agent-orchestrator/video/hero.webm" type="video/webm" />
         <source src="/cli-agent-orchestrator/video/hero.mp4" type="video/mp4" />
