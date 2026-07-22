@@ -27,7 +27,13 @@
   display: none !important;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
+  .heroVideo {
+    display: none;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
   .heroVideo {
     display: none;
   }
