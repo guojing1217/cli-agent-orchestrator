@@ -8,17 +8,6 @@ function HeroBanner() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <header className={styles.heroBanner}>
-      <video
-        className={styles.heroVideo}
-        autoPlay
-        loop
-        muted
-        playsInline
-      >
-        <source src="/cli-agent-orchestrator/video/hero.webm" type="video/webm" />
-        <source src="/cli-agent-orchestrator/video/hero.mp4" type="video/mp4" />
-      </video>
-      <div className={styles.heroOverlay} />
       <div className={`container ${styles.heroContent}`}>
         <h1 className={styles.heroTitle}>{siteConfig.title}</h1>
         <p className={styles.heroSubtitle}>{siteConfig.tagline}</p>
@@ -32,6 +21,18 @@ function HeroBanner() {
             GitHub
           </Link>
         </div>
+      </div>
+      <div className={styles.heroVideoWrapper}>
+        <video
+          className={styles.heroVideo}
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source src="/cli-agent-orchestrator/video/hero.webm" type="video/webm" />
+          <source src="/cli-agent-orchestrator/video/hero.mp4" type="video/mp4" />
+        </video>
       </div>
     </header>
   );
