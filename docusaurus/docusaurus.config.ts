@@ -11,10 +11,10 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://awslabs.github.io',
+  url: 'https://guojing1217.github.io',
   baseUrl: '/cli-agent-orchestrator/',
 
-  organizationName: 'awslabs',
+  organizationName: 'guojing1217',
   projectName: 'cli-agent-orchestrator',
 
   onBrokenLinks: 'throw',
