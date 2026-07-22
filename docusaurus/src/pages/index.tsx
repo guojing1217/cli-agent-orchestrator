@@ -8,18 +8,10 @@ function HeroBanner() {
   const {siteConfig} = useDocusaurusContext();
   return (
     <header className={styles.heroBanner}>
-      <video
-        className={styles.heroVideo}
-        autoPlay
-        loop
-        muted
-        playsInline
-      >
-        <source src="/cli-agent-orchestrator/video/hero.webm" type="video/webm" />
-        <source src="/cli-agent-orchestrator/video/hero.mp4" type="video/mp4" />
-      </video>
-      <div className={styles.heroOverlay} />
+      <div className={styles.heroGlow} />
+      <div className={styles.heroGrid} />
       <div className={`container ${styles.heroContent}`}>
+        <div className={styles.badge}>Open Source Multi-Agent Framework</div>
         <h1 className={styles.heroTitle}>{siteConfig.title}</h1>
         <p className={styles.heroSubtitle}>{siteConfig.tagline}</p>
         <div className={styles.buttons}>
@@ -31,6 +23,15 @@ function HeroBanner() {
             to="https://github.com/awslabs/cli-agent-orchestrator">
             GitHub
           </Link>
+        </div>
+        <div className={styles.providers}>
+          {['Claude Code', 'Kiro', 'Amazon Q', 'Gemini', 'Codex', 'Copilot', 'Cursor', 'Kimi', 'OpenCode'].map(
+            (name) => (
+              <span key={name} className={styles.providerChip}>
+                {name}
+              </span>
+            ),
+          )}
         </div>
       </div>
     </header>
