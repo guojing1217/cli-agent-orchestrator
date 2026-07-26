@@ -44,7 +44,7 @@ You orchestrate developer and reviewer agents.
 
 ## Permission Modes
 
-By default, CAO launches Claude Code with `--dangerously-skip-permissions` so worker agents spawned via handoff/assign do not block on permission prompts.
+By default, CAO launches all Claude Code agents (both supervisor and workers) with `--dangerously-skip-permissions` so they do not block on permission prompts. CAO already confirms workspace access during `cao launch` (or `--yolo`), so re-prompting each spawned agent is redundant.
 
 For finer control, set `permissionMode` in the profile:
 
@@ -102,9 +102,9 @@ If no CAO profile is found for a given agent name, the provider also falls back 
 When launched with a CAO agent profile, the Claude Code provider:
 
 1. Loads the profile and extracts the markdown body as the system prompt.
-2. Passes it via `--append-system-prompt` (newlines escaped for tmux compatibility).
-3. Injects any `mcpServers` defined in the profile via `--mcp-config` JSON.
-4. Applies `allowedTools` restrictions through CAO's tool vocabulary (the MCP server gates access).
+2. Writes it to a temp file and passes it via `--append-system-prompt-file`.
+3. Injects any `mcpServers` defined in the profile via `--mcp-config` JSON (with `--strict-mcp-config`).
+4. Maps `allowedTools` to Claude Code's native `--disallowedTools` flags to restrict tool access.
 
 ## Combining with Claude Code Sub-Agents
 

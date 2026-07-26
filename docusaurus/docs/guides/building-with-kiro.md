@@ -42,6 +42,8 @@ cao launch --agents code_supervisor --provider kiro_cli
 Kiro CLI **requires** an agent profile -- it cannot be launched without one. Always use `--agents <profile>`.
 :::
 
+CAO always passes `--trust-all-tools` to Kiro CLI so agents don't block on tool permission prompts. In `--yolo` mode, `--legacy-ui` is additionally forced to bypass Kiro's interactive consent dialog.
+
 ## Dual UI Mode
 
 Kiro CLI supports two UI modes, and CAO auto-detects which is active:
@@ -65,9 +67,9 @@ CAO's status detection and message extraction work with both modes seamlessly. T
 
 ## Profile Requirement
 
-Unlike Claude Code (which can run without a profile), Kiro CLI always needs a profile. CAO sends the profile name to Kiro CLI's `--agent` flag, pointing to the corresponding file in `~/.kiro/agents/`.
+Unlike Claude Code (which can run without a profile), Kiro CLI always needs a profile. CAO sends the profile name to Kiro CLI's `--agent` flag, which resolves to a file in `~/.kiro/agents/`.
 
-When you `cao install developer`, CAO places the agent markdown file in the configured Kiro agents directory (default `~/.kiro/agents/`).
+When you `cao install developer`, CAO converts the agent profile to Kiro's native JSON format and places the `.json` file in the configured Kiro agents directory (default `~/.kiro/agents/`). The JSON includes the system prompt, model, MCP servers, and skill resources.
 
 ## Custom Agent Directory
 
@@ -83,7 +85,7 @@ export CAO_AGENTS_DIR=/path/to/my/agents
 
 ## Skill Delivery
 
-CAO skills are delivered to Kiro CLI via native `skill://` resources. When the server starts, built-in skills are auto-seeded, and any managed skills you add become available to Kiro sessions without explicit `load_skill` calls.
+CAO skills are delivered to Kiro CLI via native `skill://` resources registered in the agent JSON. When you `cao install` a profile, skill URIs pointing to `~/.aws/cli-agent-orchestrator/skills/` are embedded in the agent config. Kiro CLI loads skill metadata automatically from these URIs; full skill content is fetched via the `load_skill` MCP tool at runtime when the agent needs it.
 
 ## Cross-Provider Supervisor on Kiro
 
