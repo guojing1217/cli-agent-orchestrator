@@ -1,0 +1,422 @@
+/* Railway-inspired dark theme with purple/pink gradients */
+
+@keyframes blobDrift1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(80px, -60px) scale(1.1);
+  }
+  66% {
+    transform: translate(-40px, 40px) scale(0.95);
+  }
+}
+
+@keyframes blobDrift2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-60px, 80px) scale(1.05);
+  }
+  66% {
+    transform: translate(50px, -30px) scale(0.9);
+  }
+}
+
+@keyframes blobDrift3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(40px, 60px) scale(1.15);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pillGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(147, 51, 234, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(147, 51, 234, 0.6);
+  }
+}
+
+.wrapper {
+  position: relative;
+  min-height: 100vh;
+  background: #13111c;
+  overflow: hidden;
+  color: #e8e4f0;
+}
+
+/* Background organic gradient blobs */
+.bgGradients {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bgBlob1 {
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 60vw;
+  height: 60vw;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(147, 51, 234, 0.15) 0%, transparent 70%);
+  animation: blobDrift1 20s ease-in-out infinite;
+}
+
+.bgBlob2 {
+  position: absolute;
+  bottom: -10%;
+  right: -15%;
+  width: 50vw;
+  height: 50vw;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(236, 72, 153, 0.12) 0%, transparent 70%);
+  animation: blobDrift2 25s ease-in-out infinite;
+}
+
+.bgBlob3 {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  width: 40vw;
+  height: 40vw;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(147, 51, 234, 0.08) 0%, transparent 60%);
+  animation: blobDrift3 18s ease-in-out infinite;
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rem 2rem 4rem;
+  text-align: center;
+}
+
+.heroContent {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.4rem 1.2rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  background: rgba(147, 51, 234, 0.15);
+  border: 1px solid rgba(147, 51, 234, 0.4);
+  color: #c084fc;
+}
+
+.title {
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #c084fc 50%, #ec4899 100%);
+  background-size: 200% 200%;
+  animation: gradientShift 6s ease infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tagline {
+  font-size: 1.25rem;
+  color: #a89fc4;
+  margin: 0;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+.ctaGroup {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.ctaPrimary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
+  background: linear-gradient(135deg, #9333ea, #ec4899);
+  text-decoration: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(147, 51, 234, 0.4);
+}
+
+.ctaPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(147, 51, 234, 0.6);
+  color: #fff;
+  text-decoration: none;
+}
+
+.ctaGlass {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 2rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #e8e4f0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  text-decoration: none;
+  transition: transform 0.2s, background 0.2s, border-color 0.2s;
+}
+
+.ctaGlass:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Providers */
+.providers {
+  position: relative;
+  z-index: 1;
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.providerTrack {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.providerPill {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: rgba(147, 51, 234, 0.1);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  color: #d8b4fe;
+  animation: pillGlow 3s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * 0.3s);
+}
+
+.providerPill:nth-child(1) { --i: 0; }
+.providerPill:nth-child(2) { --i: 1; }
+.providerPill:nth-child(3) { --i: 2; }
+.providerPill:nth-child(4) { --i: 3; }
+.providerPill:nth-child(5) { --i: 4; }
+.providerPill:nth-child(6) { --i: 5; }
+.providerPill:nth-child(7) { --i: 6; }
+
+/* Terminal */
+.terminalSection {
+  position: relative;
+  z-index: 1;
+  padding: 3rem 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.terminalGlow {
+  padding: 2px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #9333ea, #ec4899, #9333ea);
+  background-size: 300% 300%;
+  animation: gradientShift 4s ease infinite;
+  box-shadow: 0 0 40px rgba(147, 51, 234, 0.3), 0 0 80px rgba(236, 72, 153, 0.15);
+  max-width: 700px;
+  width: 100%;
+}
+
+.terminal {
+  background: #1a1625;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.terminalHeader {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.terminalDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.terminalDot:nth-child(1) {
+  background: #ff5f57;
+}
+
+.terminalDot:nth-child(2) {
+  background: #febc2e;
+}
+
+.terminalDot:nth-child(3) {
+  background: #28c840;
+}
+
+.terminalBody {
+  padding: 1.25rem 1.5rem;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.8;
+}
+
+.terminalLine {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.prompt {
+  color: #9333ea;
+  font-weight: 700;
+}
+
+.command {
+  color: #e8e4f0;
+}
+
+.output {
+  color: #4ade80;
+}
+
+/* Features */
+.features {
+  position: relative;
+  z-index: 1;
+  padding: 4rem 2rem 6rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.featureCard {
+  position: relative;
+  padding: 2rem;
+  border-radius: 16px;
+  background: rgba(26, 22, 37, 0.8);
+  border: 1px solid rgba(147, 51, 234, 0.15);
+  backdrop-filter: blur(4px);
+  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+  overflow: hidden;
+}
+
+.featureCard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.08), rgba(236, 72, 153, 0.05));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(147, 51, 234, 0.4);
+  box-shadow: 0 8px 32px rgba(147, 51, 234, 0.2);
+}
+
+.featureCard:hover::before {
+  opacity: 1;
+}
+
+.featureTitle {
+  position: relative;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: #f0eaff;
+}
+
+.featureDesc {
+  position: relative;
+  font-size: 0.9rem;
+  color: #9a91b0;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .title {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .title {
+    font-size: 2.2rem;
+  }
+
+  .hero {
+    padding: 5rem 1.5rem 3rem;
+  }
+
+  .ctaGroup {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ctaPrimary,
+  .ctaGlass {
+    justify-content: center;
+  }
+
+  .terminalBody {
+    font-size: 0.75rem;
+  }
+}
