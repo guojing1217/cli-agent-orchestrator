@@ -4,24 +4,53 @@ sidebar_position: 2
 
 # Assign Pattern
 
-The Assign pattern provides asynchronous task delegation. The supervisor dispatches a task and continues without waiting.
+The `assign` MCP tool provides asynchronous task delegation. A supervisor agent dispatches a task to a new worker agent and continues working without waiting for the result.
 
-## Usage
+## MCP Tool Signature
 
-```bash
-cao assign --to worker-1 --task "Run integration tests"
-cao assign --to worker-2 --task "Update documentation"
 ```
+assign(
+  agent_profile: str,    # Required. Agent profile name
+  message: str,          # Required. Task message
+  working_directory?: str,  # Optional. Only when CAO_ENABLE_WORKING_DIRECTORY=true
+  model?: str            # Optional. Override the agent's model
+)
+```
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `agent_profile` | Yes | The agent profile to launch for the worker |
+| `message` | Yes | The task description sent to the new worker |
+| `working_directory` | No | Set the working directory for the worker (requires `CAO_ENABLE_WORKING_DIRECTORY=true`) |
+| `model` | No | Override the agent's model |
 
 ## Behavior
 
-1. Supervisor sends task to the target worker
-2. Supervisor **continues immediately** without waiting
-3. Workers execute independently in parallel
-4. Results can be checked later via `cao status`
+1. The supervisor agent calls `assign` via the `cao-mcp-server`
+2. CAO creates a **new terminal** with the specified agent profile
+3. The task message is sent to that terminal
+4. The supervisor **continues immediately** without waiting
+5. The worker runs asynchronously in the same session as the supervisor (as a separate tmux window)
+6. The worker reports back via `send_message` or `workflow_return`
 
 ## When to Use
 
 - Independent tasks that can run in parallel
-- Long-running operations where blocking is undesirable
+- Long-running operations where blocking the supervisor is undesirable
 - Fan-out workflows (one supervisor, many workers)
+
+## Example
+
+A supervisor agent orchestrating a code review might call:
+
+```json
+{
+  "tool": "assign",
+  "arguments": {
+    "agent_profile": "test-runner",
+    "message": "Run integration tests for the auth module and report results"
+  }
+}
+```
+
+The supervisor continues its own work while the test-runner executes independently.

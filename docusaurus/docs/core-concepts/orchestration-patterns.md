@@ -49,8 +49,9 @@ Supervisor continues
 handoff(
   agent_profile: str,      # e.g. "developer"
   message: str,            # the task to perform
-  provider: str = None,    # override provider
-  working_directory: str = None  # requires CAO_ENABLE_WORKING_DIRECTORY=true
+  timeout: int = 600,      # seconds to wait (1-3600)
+  working_directory: str = None,  # requires CAO_ENABLE_WORKING_DIRECTORY=true
+  model: str = None        # override the agent's model
 )
 ```
 
@@ -89,8 +90,8 @@ Supervisor reads result from inbox
 assign(
   agent_profile: str,      # e.g. "developer"
   message: str,            # the task to perform
-  provider: str = None,    # override provider
-  working_directory: str = None  # requires CAO_ENABLE_WORKING_DIRECTORY=true
+  working_directory: str = None,  # requires CAO_ENABLE_WORKING_DIRECTORY=true
+  model: str = None        # override the agent's model
 )
 ```
 
@@ -123,8 +124,8 @@ Agent A ──send_message──▶ Agent B's inbox
 
 ```
 send_message(
-  receiver_id: str,    # target terminal ID (8-char hex)
-  message: str         # the message content
+  message: str,              # the message content
+  receiver_id: str = None    # target terminal ID (8-char hex); omit to route to caller's parent
 )
 ```
 
