@@ -10,7 +10,7 @@ CAO ships two MCP servers for different use cases, plus an MCP Apps surface for 
 
 | Server | Command | Who uses it | Purpose |
 |--------|---------|-------------|---------|
-| **cao-mcp-server** | `cao-mcp-server` | Agents **inside** a CAO session | Inter-agent orchestration (`handoff`, `assign`, `send_message`, `memory_store`, `memory_recall`, `load_skill`) |
+| **cao-mcp-server** | `cao-mcp-server` | Agents **inside** a CAO session | Inter-agent orchestration (`handoff`, `assign`, `send_message`, `memory_store`, `memory_recall`, `memory_forget`, `load_skill`, `workflow_run`, `workflow_resume`, `workflow_return`) |
 | **cao-ops-mcp** | `cao-ops-mcp-server` | A primary agent **outside** CAO | Meta-management (install profiles, launch/monitor/shutdown sessions) |
 
 ### cao-mcp-server (orchestration tools)
@@ -23,9 +23,15 @@ This is the MCP server that CAO injects into each agent's session. It provides t
 - `assign` -- asynchronous fire-and-forget delegation
 - `send_message` -- direct inbox delivery to another terminal
 - `delete_terminal` -- clean up a finished worker
-- `memory_store` / `memory_recall` -- persistent agent memory
+- `memory_store` / `memory_recall` / `memory_forget` -- persistent agent memory
 - `load_skill` -- retrieve a skill's full markdown body at runtime
 - `answer_user_prompt` -- respond to structured prompts (Hermes)
+- `workflow_run` -- start a workflow execution
+- `workflow_resume` -- resume a paused workflow
+- `workflow_return` -- return a result from a workflow step
+- `workflow_cancel` -- cancel a running workflow
+- `emit_ui` -- emit a UI event to connected dashboard clients
+- `find_profiles` -- search available agent profiles
 
 Agents inside a CAO session receive this server automatically. The server identifies the caller by the `CAO_TERMINAL_ID` environment variable.
 

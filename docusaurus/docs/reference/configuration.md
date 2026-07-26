@@ -105,8 +105,8 @@ Timeouts and buffer sizes for the CAO runtime. Override only if you experience t
 |-----|---------|-------------|
 | `mcp_request_timeout` | `30` | Seconds for HTTP calls between MCP server and CAO API |
 | `event_bus_max_queue_size` | `1024` | Max events buffered per subscriber in the event bus |
-| `provider_init_timeout` | `60` | Seconds to wait for initial shell prompt |
-| `startup_prompt_handler_timeout` | `20` | Seconds for Claude Code workspace trust dialog handling |
+| `provider_init_timeout` | `60` | Seconds to wait for a CLI agent to reach IDLE (also caps startup-prompt handling) |
+| `startup_prompt_handler_timeout` | `20` | Idle-gap (seconds) between startup prompts before handler exits (used by Claude Code, Kimi CLI, Antigravity CLI) |
 
 ### `memory`
 

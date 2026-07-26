@@ -107,9 +107,6 @@ cao profile create -t aws/stepfunction -c config.json
 
 # Remove an installed profile
 cao profile remove my-custom-agent
-
-# Discover profiles across all configured directories
-cao profile find
 ```
 
 ## Profile Discovery
@@ -129,11 +126,11 @@ cao config set agents.extra_dirs '["/path/to/my/agents"]'
 
 ## Tool Restrictions
 
-The `role` and `allowedTools` fields control what CAO tools an agent can access:
+The `role` and `allowedTools` fields control what CAO tools an agent can access. The defaults per role are:
 
-- **supervisor** -- full access: `handoff`, `assign`, `send_message`, `delete_terminal`, `memory_*`
-- **developer** -- `send_message`, `memory_*`
-- **reviewer** -- `send_message`, `memory_*`
+- **supervisor** -- `@cao-mcp-server`, `fs_read`, `fs_list`
+- **developer** -- `@builtin`, `fs_*`, `execute_bash`, `web_fetch`, `@cao-mcp-server`
+- **reviewer** -- `@builtin`, `fs_read`, `fs_list`, `@cao-mcp-server`
 
 `allowedTools` always overrides role defaults when set. The `--yolo` flag bypasses all restrictions.
 

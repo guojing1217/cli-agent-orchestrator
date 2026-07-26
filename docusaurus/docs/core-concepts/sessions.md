@@ -49,8 +49,9 @@ Each terminal's status is detected by the **StatusMonitor**, which analyzes outp
 | `WAITING_USER_ANSWER` | Agent is showing a permission/selection prompt |
 | `COMPLETED` | Agent finished its response and returned to prompt |
 | `ERROR` | Agent encountered an error or produced unrecognizable output |
+| `UNKNOWN` | Status cannot be determined (e.g., terminal just created or output not yet captured) |
 
-Status detection is **provider-specific** -- each provider implements pattern matching for its CLI's output format. The StatusMonitor maintains a rolling 8 KB buffer of terminal output and re-evaluates status on every new chunk.
+Status detection is **provider-specific** -- each provider implements pattern matching for its CLI's output format. The StatusMonitor maintains a rolling 8 KB buffer of terminal output and re-evaluates status at quiescence (after output stops) and on rising edges (when output resumes after quiet), using debounced edge detection to avoid false transitions during TUI redraws.
 
 ### Sticky status
 
@@ -97,9 +98,12 @@ Terminals are assigned roles through their agent profile's `role` field:
 
 | Role | Purpose | Default Tool Access |
 |------|---------|---------------------|
-| **supervisor** | Coordinates other agents, delegates work | `handoff`, `assign`, `send_message`, `delete_terminal`, `memory_*` |
-| **developer** | Implements tasks, writes code | `send_message`, `memory_*` |
-| **reviewer** | Reviews code, provides feedback | `send_message`, `memory_*` |
+| **supervisor** | Coordinates other agents, delegates work | `@cao-mcp-server`, `fs_read`, `fs_list` |
+| **developer** | Implements tasks, writes code | `@builtin`, `fs_*`, `execute_bash`, `web_fetch`, `@cao-mcp-server` |
+| **reviewer** | Reviews code, provides feedback | `@builtin`, `fs_read`, `fs_list`, `@cao-mcp-server` |
+
+- `@cao-mcp-server` bundles all orchestration tools (`handoff`, `assign`, `send_message`, `delete_terminal`, `memory_store`, `memory_recall`, `memory_forget`, `load_skill`, `workflow_run`, `workflow_resume`, `workflow_return`, `emit_ui`, `find_profiles`, `workflow_cancel`, etc.)
+- `@builtin` maps to all provider-native tools (the tools the underlying CLI agent exposes natively).
 
 Custom roles can be defined in `settings.json` under `agents.roles`.
 
@@ -124,7 +128,7 @@ This enables **human-in-the-loop** workflows -- you can type directly into a wor
 
 ## Terminal Restoration
 
-When a `handoff` completes successfully, the worker terminal is automatically deleted. However, its scrollback and metadata are saved to `~/.cao/logs/terminal/` so you can restore it for debugging:
+When a `handoff` completes successfully, the worker terminal is automatically deleted. However, its scrollback and metadata are saved to `~/.aws/cli-agent-orchestrator/logs/terminal/` so you can restore it for debugging:
 
 ```bash
 cao terminal restore <terminal_id>

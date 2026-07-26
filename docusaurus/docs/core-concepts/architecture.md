@@ -4,7 +4,7 @@ sidebar_position: 1
 
 # Architecture
 
-CAO implements a **supervisor-worker** multi-agent system where one supervisor agent delegates tasks to specialized worker agents, each running in an isolated tmux session. Communication flows through the Model Context Protocol (MCP), and the runtime is powered by an event-driven pipeline connected by a central pub/sub event bus.
+CAO implements a **supervisor-worker** multi-agent system where one supervisor agent delegates tasks to specialized worker agents, each running in an isolated tmux window within the session. Communication flows through the Model Context Protocol (MCP), and the runtime is powered by an event-driven pipeline connected by a central pub/sub event bus.
 
 ## Supervisor-Worker Pattern
 
@@ -74,7 +74,7 @@ The event bus (`services/event_bus.py`) provides:
 - **Wildcard topic matching** -- subscribe to `terminal.*.output` to receive all terminals' output.
 - **Thread-safe publishing** -- FifoReader threads publish via `loop.call_soon_threadsafe`.
 - **Async consumption** -- consumers await on bounded `asyncio.Queue` instances.
-- **Back-pressure** -- per-subscriber queue cap (configurable via `CAO_EVENT_BUS_MAX_QUEUE_SIZE`, default 16384) with drop-and-log on overflow.
+- **Back-pressure** -- per-subscriber queue cap (configurable via `CAO_EVENT_BUS_MAX_QUEUE_SIZE`, default 1024) with drop-and-log on overflow.
 
 ## Four Control Planes
 
