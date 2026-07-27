@@ -111,7 +111,7 @@ summarize findings.</code></pre>
       A supervisor (or another internal agent via the <code>cao-mcp-server</code>) calls
       <code>answer_user_prompt(terminal_id, answer)</code> to unblock the waiting worker — no
       human needed. Note: <code>answer_user_prompt</code> is available only through the internal
-      <code>cao-mcp-server</code>, not the ops server. External scripts would need to use the REST API directly.
+      <code>cao-mcp-server</code>, not the ops server. External scripts can send input to a waiting terminal via <code>POST /terminals/{id}/input</code> — the same generic endpoint used for all terminal input.
     </p>
 
     <div class="callout callout-accent">

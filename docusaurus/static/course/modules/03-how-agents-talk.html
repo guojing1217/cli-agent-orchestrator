@@ -64,10 +64,10 @@
         <pre><code><span class="code-line"><span class="code-comment"># mcp_server/server.py</span></span>
 <span class="code-line">terminal = _create_terminal(</span>
 <span class="code-line">    agent_profile=agent_profile,</span>
-<span class="code-line">    message=message,</span>
+<span class="code-line">    initial_message=message,</span>
 <span class="code-line">    defer_init=<span class="code-keyword">True</span>,</span>
 <span class="code-line">)</span>
-<span class="code-line"><span class="code-keyword">return</span> terminal[<span class="code-string">'id'</span>]</span></code></pre>
+<span class="code-line"><span class="code-keyword">return</span> {<span class="code-string">"success"</span>: <span class="code-keyword">True</span>, <span class="code-string">"terminal_id"</span>: terminal_id}</span></code></pre>
       </div>
       <div class="translation-english">
         <span class="translation-label">Plain English</span>

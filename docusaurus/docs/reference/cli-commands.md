@@ -160,7 +160,7 @@ cao session status my-session --workers
 cao session send my-session "Now run the integration tests"
 
 # Send a message to a specific terminal
-cao session send my-session "Check the logs" --terminal 2
+cao session send my-session "Check the logs" --terminal a1b2c3d4
 
 # Send asynchronously
 cao session send my-session "Generate the report" --async
@@ -277,16 +277,16 @@ cao profile list
 cao profile show code-reviewer
 
 # Validate a profile file
-cao profile validate ./my-profile.yaml
+cao profile validate ./my-profile.md
 
 # List available templates
 cao profile templates
 
 # Create a new profile from a template
-cao profile create --template basic --config ./my-config.yaml
+cao profile create --template basic --config ./my-config.json
 
 # Create a profile with a custom output directory
-cao profile create --template advanced --config ./config.yaml --output-dir ~/.cao/profiles
+cao profile create --template advanced --config ./config.json --output-dir ~/.cao/profiles
 
 # Remove a profile (with confirmation)
 cao profile remove old-profile
@@ -353,7 +353,7 @@ cao schedule run NAME
 
 ```bash
 # Add a new scheduled flow
-cao schedule add ./flows/nightly-tests.yaml
+cao schedule add ./flows/nightly-tests.md
 
 # List all scheduled flows
 cao schedule list

@@ -24,7 +24,7 @@
       <div class="icon-row">
         <div class="icon-circle" style="background: var(--color-actor-1); color: white;">F</div>
         <div>
-          <strong>FifoReader (Reporters)</strong>
+          <strong>FifoManager (Reporters)</strong>
           <p>Reads raw bytes from named FIFOs at <code>~/.aws/cli-agent-orchestrator/fifos/{id}.fifo</code>. Coalesces rapid-fire chunks within a 50ms window before publishing.</p>
         </div>
       </div>
@@ -70,12 +70,12 @@
 
     <div class="flow-animation animate-in" data-steps='[
       {"label":"tmux pipe-pane: Agent prints idle prompt text","highlight":"flow-pipe"},
-      {"label":"FifoReader: Reads from FIFO, coalesces 50ms, publishes terminal.a1b2.output","highlight":"flow-fifo"},
+      {"label":"FifoManager: Reads from FIFO, coalesces 50ms, publishes terminal.a1b2c3d4.output","highlight":"flow-fifo"},
       {"label":"EventBus: Routes to all subscribers of terminal.*.output","highlight":"flow-bus"},
       {"label":"StatusMonitor: Buffer updated → pattern match → status = IDLE","highlight":"flow-status"},
-      {"label":"EventBus: Publishes terminal.a1b2.status = IDLE","highlight":"flow-bus"},
+      {"label":"EventBus: Publishes terminal.a1b2c3d4.status = IDLE","highlight":"flow-bus"},
       {"label":"InboxService: IDLE detected! Delivering 1 pending message...","highlight":"flow-inbox"},
-      {"label":"LogWriter: Appends chunk to logs/terminal/a1b2.log","highlight":"flow-log"}
+      {"label":"LogWriter: Appends chunk to logs/terminal/a1b2c3d4.log","highlight":"flow-log"}
     ]'>
       <div class="flow-actors">
         <div class="flow-actor" id="flow-pipe">
@@ -84,7 +84,7 @@
         </div>
         <div class="flow-actor" id="flow-fifo">
           <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-2);">F</div>
-          <span>FifoReader</span>
+          <span>FifoManager</span>
         </div>
         <div class="flow-actor" id="flow-bus">
           <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-3);">B</div>
@@ -154,7 +154,7 @@
     <div class="translation-block">
       <div class="translation-code">
         <span class="translation-label">Python</span>
-<pre><code><span class="code-comment"># services/event_bus.py (simplified)</span>
+<pre><code><span class="code-comment"># services/status_monitor.py (simplified)</span>
 <span class="code-keyword">queue</span> = bus.subscribe(<span class="code-string">"terminal.*.output"</span>)  <span class="code-comment"># wildcard!</span>
 <span class="code-keyword">async for</span> topic, data <span class="code-keyword">in</span> queue:
     terminal_id = topic.split(<span class="code-string">"."</span>)[<span class="code-number">1</span>]

@@ -13,9 +13,8 @@ This guide covers how to use CAO with Kiro CLI, the default provider. Kiro CLI i
    aws configure
    # Or use SSO, IAM Identity Center, environment variables, etc.
    ```
-2. **Kiro CLI** installed:
+2. **Kiro CLI** installed -- follow the official installation instructions at [kiro.dev](https://kiro.dev):
    ```bash
-   npm install -g @anthropic-ai/kiro-cli
    kiro-cli --version
    ```
 3. **CAO** installed with `cao-server` running.

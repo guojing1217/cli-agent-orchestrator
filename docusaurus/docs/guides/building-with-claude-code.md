@@ -12,10 +12,9 @@ This guide covers how to use CAO with Claude Code as your AI agent provider, inc
    ```bash
    npm install -g @anthropic-ai/claude-code
    ```
-2. **Authentication** -- either an Anthropic API key or a Claude subscription:
+2. **Authentication** -- set your Anthropic API key in your environment:
    ```bash
-   claude setup-token
-   # Or set ANTHROPIC_API_KEY in your environment
+   export ANTHROPIC_API_KEY=your-key-here
    ```
 3. **CAO** installed with `cao-server` running.
 
@@ -119,5 +118,5 @@ Claude Code's native [sub-agent](https://docs.claude.com/en/docs/claude-code/sub
 |-------|----------|
 | Trust dialog blocking worker startup | Verify `--dangerously-skip-permissions` is being passed (default behavior). Check with `tmux attach`. |
 | Status stuck on PROCESSING | Update Claude Code CLI (`npm update -g @anthropic-ai/claude-code`). Newer versions may use different spinner formats. |
-| Authentication failures | Run `claude setup-token` or export `ANTHROPIC_API_KEY`. |
+| Authentication failures | Export `ANTHROPIC_API_KEY` in your environment. |
 | Status stuck on ERROR | Attach to the tmux session and check the terminal output directly. |

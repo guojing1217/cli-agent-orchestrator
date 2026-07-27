@@ -59,17 +59,17 @@
   - <span class="code-keyword">id:</span> <span class="code-string">fetch-diff</span>
     <span class="code-keyword">provider:</span> <span class="code-string">claude_code</span>
     <span class="code-keyword">agent:</span> <span class="code-string">developer</span>
-    <span class="code-keyword">prompt:</span> <span class="code-string">"Fetch the diff from {{pr_url}} and summarize"</span>
+    <span class="code-keyword">prompt:</span> <span class="code-string">"Fetch the diff from {{workflow.inputs.pr_url}} and summarize"</span>
 
   - <span class="code-keyword">id:</span> <span class="code-string">review-security</span>
     <span class="code-keyword">provider:</span> <span class="code-string">claude_code</span>
     <span class="code-keyword">agent:</span> <span class="code-string">reviewer</span>
-    <span class="code-keyword">prompt:</span> <span class="code-string">"Review for security issues: {{steps.fetch-diff.output}}"</span>
+    <span class="code-keyword">prompt:</span> <span class="code-string">"Review for security issues: {{steps.fetch-diff.output.summary}}"</span>
 
   - <span class="code-keyword">id:</span> <span class="code-string">review-quality</span>
     <span class="code-keyword">provider:</span> <span class="code-string">kiro_cli</span>
     <span class="code-keyword">agent:</span> <span class="code-string">reviewer</span>
-    <span class="code-keyword">prompt:</span> <span class="code-string">"Review for code quality: {{steps.fetch-diff.output}}"</span></pre>
+    <span class="code-keyword">prompt:</span> <span class="code-string">"Review for code quality: {{steps.fetch-diff.output.summary}}"</span></pre>
         </div>
         <div class="translation-english">
           <span class="translation-label">Plain English</span>
@@ -88,11 +88,11 @@
             <div class="tl">&nbsp;</div>
             <div class="tl">Step 2: <code>id:</code> gives it a unique name for later reference</div>
             <div class="tl"><code>provider:</code> can differ per step (here claude_code)</div>
-            <div class="tl"><code>{{steps.fetch-diff.output}}</code> — references output from a previous step by its <code>id</code></div>
+            <div class="tl"><code>{{steps.fetch-diff.output.summary}}</code> — references a field from a previous step's output (full path required: <code>{{steps.STEP_ID.output.FIELD}}</code>)</div>
             <div class="tl">&nbsp;</div>
             <div class="tl">Step 3: uses a different provider (kiro_cli)</div>
             <div class="tl">Same <code>agent</code> profile but different <code>provider</code></div>
-            <div class="tl"><code>{{steps.ID.output}}</code> references any earlier step's output by its <code>id</code></div>
+            <div class="tl">Template syntax: <code>{{workflow.inputs.NAME}}</code> for inputs, <code>{{steps.STEP_ID.output.FIELD}}</code> for step outputs</div>
           </div>
         </div>
       </div>
@@ -135,7 +135,7 @@
           <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">4</div>
           <div>
             <strong>Data flows between steps</strong>
-            <p>Step outputs are captured and available to later steps via <code>{{steps.ID.output}}</code> template expressions, where <code>ID</code> is the step's <code>id:</code> field. Outputs are validated against JSON Schema if defined.</p>
+            <p>Step outputs are captured and available to later steps via <code>{{steps.STEP_ID.output.FIELD}}</code> template expressions (the full path is required: <code>{{workflow.inputs.NAME}}</code> for inputs, <code>{{steps.STEP_ID.output.FIELD}}</code> for step outputs). Outputs are validated against JSON Schema if defined.</p>
           </div>
         </div>
 

@@ -74,7 +74,7 @@ The event bus (`services/event_bus.py`) provides:
 - **Wildcard topic matching** -- subscribe to `terminal.*.output` to receive all terminals' output.
 - **Thread-safe publishing** -- FifoReader threads publish via `loop.call_soon_threadsafe`.
 - **Async consumption** -- consumers await on bounded `asyncio.Queue` instances.
-- **Back-pressure** -- per-subscriber queue cap (configurable via `CAO_EVENT_BUS_MAX_QUEUE_SIZE`, default 1024) with drop-and-log on overflow.
+- **Back-pressure** -- per-subscriber queue cap (configurable via `CAO_EVENT_BUS_MAX_QUEUE_SIZE`, default 16384) with drop-and-log on overflow.
 
 ## Four Control Planes
 
