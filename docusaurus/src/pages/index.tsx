@@ -41,6 +41,11 @@ function HeroBanner() {
               </Link>
               <Link
                 className={styles.secondaryButton}
+                to="/cli-agent-orchestrator/course/index.html">
+                Interactive Course
+              </Link>
+              <Link
+                className={styles.secondaryButton}
                 to="https://github.com/awslabs/cli-agent-orchestrator">
                 View on GitHub
               </Link>
