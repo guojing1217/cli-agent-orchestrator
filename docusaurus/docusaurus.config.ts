@@ -61,6 +61,11 @@ const config: Config = {
           label: 'Documentation',
         },
         {
+          href: '/cli-agent-orchestrator/course/index.html',
+          label: 'Interactive Course',
+          position: 'left',
+        },
+        {
           href: 'https://github.com/awslabs/cli-agent-orchestrator',
           label: 'GitHub',
           position: 'right',
