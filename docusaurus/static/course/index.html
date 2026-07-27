@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How CAO Works — Interactive Course</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --color-accent:       #2A7B9B;
+      --color-accent-hover: #1F6280;
+      --color-accent-light: #E4F2F7;
+      --color-accent-muted: #5A9DB8;
+    }
+    /* Color flow label to match the active actor (no red) */
+    .flow-animation:has(#flow-you.active) .flow-step-label { color: #3b82f6; }
+    .flow-animation:has(#flow-server.active) .flow-step-label { color: var(--color-actor-2); }
+    .flow-animation:has(#flow-supervisor.active) .flow-step-label { color: var(--color-actor-3); }
+    .flow-animation:has(#flow-workers.active) .flow-step-label { color: var(--color-actor-5); }
+    .flow-animation:has(#flow-pipe.active) .flow-step-label { color: #3b82f6; }
+    .flow-animation:has(#flow-fifo.active) .flow-step-label { color: var(--color-actor-2); }
+    .flow-animation:has(#flow-bus.active) .flow-step-label { color: var(--color-actor-3); }
+    .flow-animation:has(#flow-status.active) .flow-step-label { color: var(--color-actor-4); }
+    .flow-animation:has(#flow-inbox.active) .flow-step-label { color: var(--color-actor-5); }
+    .flow-animation:has(#flow-log.active) .flow-step-label { color: #3b82f6; }
+    .flow-step-label {
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    /* Make glossary terms more visible */
+    .term {
+      border-bottom: 2px dashed var(--color-accent) !important;
+      color: var(--color-accent) !important;
+      font-weight: 500;
+    }
+    .term:hover {
+      background: var(--color-accent-light);
+      border-radius: 2px;
+    }
+
+    /* Add spacing between card titles and body text */
+    .pattern-card h3 {
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Screen headings: larger, colored, with space below */
+    .screen h2 {
+      color: var(--color-accent);
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-2);
+      border-bottom: 2px solid var(--color-accent-light);
+    }
+
+    /* Prevent vertical text in callouts and cards */
+    .callout, .callout p, .callout strong,
+    .pattern-card, .pattern-card p,
+    .quiz-container, .quiz-question {
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+    .callout code, .pattern-card code, .quiz-question code {
+      word-break: break-all;
+    }
+    /* Keep chip appearance after drop */
+    .dnd-zone-target[data-placed] {
+      background: var(--color-accent-light);
+      border: 2px solid var(--color-accent-muted);
+      border-radius: var(--radius-sm);
+      padding: var(--space-2) var(--space-3);
+      font-weight: 500;
+      color: var(--color-accent-hover);
+    }
+    .dnd-zone-target.correct-placed[data-placed] {
+      border-color: var(--color-success);
+      background: var(--color-success-light);
+      color: var(--color-success);
+    }
+    .dnd-zone-target.incorrect-placed[data-placed] {
+      border-color: var(--color-error);
+      background: var(--color-error-light);
+      color: var(--color-error);
+    }
+  </style>
+
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">How CAO Works</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="What CAO Does" role="tab" aria-label="Module 1: What CAO Does"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="The Cast of Characters" role="tab" aria-label="Module 2: The Cast of Characters"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="How Agents Talk" role="tab" aria-label="Module 3: How Agents Talk"></button>
+        <button class="nav-dot" data-target="module-4" data-tooltip="The Event Pipeline" role="tab" aria-label="Module 4: The Event Pipeline"></button>
+        <button class="nav-dot" data-target="module-5" data-tooltip="Running Your Own Agents" role="tab" aria-label="Module 5: Running Your Own Agents"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+<section class="module" id="module-1">
+  <div class="module-content">
+
+    <!-- Module Header -->
+    <div class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">What CAO Does</h1>
+      <p class="module-subtitle">From one agent doing everything serially to a team of agents working in parallel — orchestrated by infrastructure, not magic.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCREEN 1 — The Problem
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-1-1">
+      <h2 class="screen-heading animate-in">The Problem</h2>
+
+      <p class="animate-in">
+        You have <strong>3 features</strong> to build, <strong>one AI agent</strong>, and a deadline breathing down your neck.
+        The agent works on Feature A... finishes... moves to Feature B... finishes... then Feature C.
+        Each feature takes 10 minutes. That is <strong>30 minutes of serial execution</strong>.
+      </p>
+
+      <p class="animate-in">
+        Now imagine: what if you could spin up <strong>3 agents simultaneously</strong>, each working on a different feature
+        in its own isolated terminal?
+        All three finish in 10 minutes. Same work, one-third the wall-clock time.
+      </p>
+
+      <p class="animate-in">
+        That is exactly what CAO does.
+      </p>
+
+      <div class="callout callout-accent animate-in">
+        <div class="callout-icon">&#9889;</div>
+        <div class="callout-content">
+          <span class="callout-title">Key Insight</span>
+          <p>CAO is not another AI model — it is <strong>infrastructure</strong> that lets any CLI-based AI agent work as part of a team. It handles process management, message routing, and lifecycle — so the agents can focus on code.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCREEN 2 — The Supervisor-Worker Pattern
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-1-2">
+      <h2 class="screen-heading animate-in">The Supervisor-Worker Pattern</h2>
+
+      <p class="animate-in">
+        Think of an air traffic control tower. The controller does not fly the planes — it assigns runways,
+        sequences takeoffs, and resolves conflicts. The pilots (agents) do the actual flying. CAO's
+        supervisor
+        works the same way: it reads your task, breaks it into sub-tasks, and delegates each one to a
+        worker agent.
+      </p>
+
+      <p class="animate-in">
+        The supervisor never writes code directly. It thinks in terms of delegation — "worker-1 handles the API route,
+        worker-2 writes the tests, worker-3 updates the docs" — then monitors their progress through an
+        MCP-based
+        message system. When all workers report done, the supervisor synthesizes results and reports back to you.
+      </p>
+
+      <!-- Flow Animation -->
+      <div class="flow-animation animate-in" data-steps='[
+        {"label":"You run: cao launch --agents code_supervisor","highlight":"flow-you"},
+        {"label":"cao-server creates a tmux session and launches the supervisor terminal","highlight":"flow-server"},
+        {"label":"Supervisor reads the task and decides to split it into sub-tasks","highlight":"flow-supervisor"},
+        {"label":"Supervisor calls assign() — spawns worker-1 and worker-2 in new tmux windows","highlight":"flow-supervisor"},
+        {"label":"Workers execute tasks in parallel, each in its own isolated tmux window","highlight":"flow-workers"},
+        {"label":"Workers call send_message() to report results back to the supervisor","highlight":"flow-workers"}
+      ]'>
+        <div class="flow-actors">
+          <div class="flow-actor" id="flow-you">
+            <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: #3b82f6;">Y</div>
+            <span>You</span>
+          </div>
+          <div class="flow-actor" id="flow-server">
+            <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-2);">S</div>
+            <span>cao-server</span>
+          </div>
+          <div class="flow-actor" id="flow-supervisor">
+            <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-3);">V</div>
+            <span>Supervisor</span>
+          </div>
+          <div class="flow-actor" id="flow-workers">
+            <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-5);">W</div>
+            <span>Workers</span>
+          </div>
+        </div>
+        <div class="flow-step-label">Click "Next Step" to begin</div>
+        <div class="flow-packet"></div>
+        <div class="flow-controls">
+          <button class="btn btn-primary flow-next-btn">Next Step &rarr;</button>
+          <button class="btn flow-reset-btn">Reset</button>
+          <span class="flow-progress">Step 0 / 6</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCREEN 3 — What Happens When You Type `cao launch`
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-1-3">
+      <h2 class="screen-heading animate-in">What Happens When You Type <code>cao launch</code></h2>
+
+      <p class="animate-in">
+        Five concrete steps, from your terminal to a running agent:
+      </p>
+
+      <div class="stagger-children">
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">1</div>
+          <div>
+            <strong>CLI sends HTTP POST to cao-server on port 9889</strong>
+            <p>The <code>cao</code> CLI is a thin client. It sends your launch request to the locally running cao-server.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">2</div>
+          <div>
+            <strong>Server creates a tmux session prefixed <code>cao-</code></strong>
+            <p>Each orchestration run gets its own isolated session (e.g., <code>cao-abc123</code>) so multiple runs never collide.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">3</div>
+          <div>
+            <strong>Server launches your AI provider in a tmux window</strong>
+            <p>The provider (e.g., Claude Code, Kiro CLI, Codex) starts in its own window — just like you would run it manually, but automated.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">4</div>
+          <div>
+            <strong>The agent's system prompt is injected from the profile</strong>
+            <p>Profiles define the agent's role ("you are a code reviewer"), available tools, and constraints. This is how the supervisor knows it should delegate, not code.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">5</div>
+          <div>
+            <strong>You are attached to the tmux session — you see the agent working</strong>
+            <p>You can watch the supervisor think, see workers appear in new windows, and even interact with any agent mid-task via <code>tmux</code>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCREEN 4 — Quick Start
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-1-4">
+      <h2 class="screen-heading animate-in">Quick Start</h2>
+
+      <p class="animate-in">Install CAO and launch your first orchestrated agent in under a minute:</p>
+
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">terminal</span>
+<pre><span class="code-comment"># Install CAO</span>
+<span class="code-function">uv tool install</span> cli-agent-orchestrator
+
+<span class="code-comment"># Start the server (leave running)</span>
+<span class="code-function">cao-server</span>
+
+<span class="code-comment"># Launch a supervisor agent</span>
+<span class="code-function">cao launch</span> <span class="code-string">--agents code_supervisor</span> \
+  <span class="code-string">--provider claude_code</span></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">What each line does</span>
+          <div class="translation-lines">
+            <div class="tl">Install the CLI tool via uv (or pip install cli-agent-orchestrator)</div>
+            <div class="tl">Start the background HTTP server on port 9889</div>
+            <div class="tl">Launch a supervisor that will orchestrate workers using Claude Code as the provider</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-info animate-in">
+        <div class="callout-icon">&#128268;</div>
+        <div class="callout-content">
+          <span class="callout-title">Provider Agnostic</span>
+          <p>Multiple providers supported — swap <code>--provider claude_code</code> for <code>kiro_cli</code>, <code>codex</code>, <code>copilot_cli</code>, <code>cursor_cli</code>, and more.
+          The orchestration layer does not care which AI model runs inside the terminal. If it has a CLI, CAO can manage it.</p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         GLOSSARY TERM CARDS
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-1-glossary">
+      <h2 class="screen-heading animate-in">Key Terms</h2>
+
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-info-light); color: var(--color-info);">&#9642;</div>
+          <h3 class="pattern-title">tmux</h3>
+          <p class="pattern-desc">A terminal multiplexer that lets multiple terminal sessions run independently inside a single window. CAO uses it to isolate each agent.</p>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-success-light); color: var(--color-success);">&#9654;</div>
+          <h3 class="pattern-title">Session</h3>
+          <p class="pattern-desc">A named tmux session (prefixed <code>cao-</code>) that groups all agent windows for a single orchestration run.</p>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-error-light); color: var(--color-error);">&#9632;</div>
+          <h3 class="pattern-title">Terminal</h3>
+          <p class="pattern-desc">A tmux window within a session where a single agent process runs. Each agent gets its own terminal.</p>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: #FDF3E4; color: var(--color-actor-4);">&#9830;</div>
+          <h3 class="pattern-title">Provider</h3>
+          <p class="pattern-desc">A supported AI CLI tool (Claude Code, Kiro CLI, Codex, Copilot CLI, Cursor CLI, etc.) that CAO can launch and manage as an agent process.</p>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-accent-light); color: var(--color-accent);">&#9998;</div>
+          <h3 class="pattern-title">Profile</h3>
+          <p class="pattern-desc">A configuration file that defines an agent's role, system prompt, available MCP tools, and behavioral constraints.</p>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-info-light); color: var(--color-info);">&#9672;</div>
+          <h3 class="pattern-title">MCP</h3>
+          <p class="pattern-desc">Model Context Protocol — the standard interface agents use to call tools (like <code>assign()</code> and <code>send_message()</code>) exposed by the CAO server.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-2">
+  <div class="module-content">
+    <div class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">The Cast of Characters</h1>
+      <p class="module-subtitle">Five components, each with a single job. Together they turn one CLI command into a fleet of cooperating agents.</p>
+    </div>
+
+    <!-- Screen 1: Architecture at a Glance -->
+    <div class="screen animate-in" id="screen-2-1">
+      <h2 class="screen-heading">Architecture at a Glance</h2>
+      <p>Five components, three layers. Your commands flow down; agent results flow back up.</p>
+
+      <div style="margin-top: var(--space-6); border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden;">
+
+        <!-- User Layer -->
+        <div style="background: var(--color-accent-light); padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border);">
+          <div style="display: flex; align-items: center; gap: var(--space-3);">
+            <div class="icon-circle" style="background: #3b82f6; color: white; flex-shrink:0; width: 36px; height: 36px; font-size: var(--text-sm);">C</div>
+            <div>
+              <strong style="font-size: var(--text-base);">cao CLI</strong>
+              <span style="color: var(--color-text-muted); font-size: var(--text-sm);"> — your terminal. Sends HTTP requests to the server.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Service Layer -->
+        <div style="padding: var(--space-4) var(--space-5); border-bottom: 1px solid var(--color-border); display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+          <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
+            <div class="icon-circle" style="background: var(--color-actor-2); color: white; flex-shrink:0; width: 36px; height: 36px; font-size: var(--text-sm);">S</div>
+            <div>
+              <strong>cao-server</strong>
+              <p style="margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--color-text-muted);">FastAPI on :9889. Sessions, terminals, inbox, SQLite.</p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
+            <div class="icon-circle" style="background: var(--color-actor-3); color: white; flex-shrink:0; width: 36px; height: 36px; font-size: var(--text-sm);">M</div>
+            <div>
+              <strong>cao-mcp-server</strong>
+              <p style="margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--color-text-muted);">Agent tools: handoff, assign, send_message, memory.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Infrastructure Layer -->
+        <div style="padding: var(--space-4) var(--space-5); background: var(--color-surface); display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
+          <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
+            <div class="icon-circle" style="background: var(--color-actor-5); color: white; flex-shrink:0; width: 36px; height: 36px; font-size: var(--text-sm);">T</div>
+            <div>
+              <strong>tmux</strong>
+              <p style="margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--color-text-muted);">One window per agent. Output captured via pipe-pane.</p>
+            </div>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: var(--space-3);">
+            <div class="icon-circle" style="background: var(--color-actor-4); color: white; flex-shrink:0; width: 36px; height: 36px; font-size: var(--text-sm);">E</div>
+            <div>
+              <strong>Event Bus</strong>
+              <p style="margin: var(--space-1) 0 0; font-size: var(--text-sm); color: var(--color-text-muted);">Pub/sub glue. Drives status detection and message delivery.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout callout-info" style="margin-top: var(--space-5);">
+        <div class="callout-icon">&#128218;</div>
+        <div class="callout-content">
+          <span class="callout-title">Persistent Memory</span>
+          <p>Agents also have access to a <strong>memory system</strong> — a persistent store that survives across sessions. Agents call <code>memory_store</code> to save learnings and <code>memory_recall</code> to retrieve them later. Memory is scoped (global, project, session, or per-agent) so knowledge stays organized. Think of it as the team's shared notebook.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 2: Meet Each Component -->
+    <div class="screen animate-in" id="screen-2-2">
+      <h2 class="screen-heading">Meet Each Component</h2>
+
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-accent-light); color: var(--color-accent);">&#9000;</div>
+          <h3 class="pattern-title">cao CLI</h3>
+          <p class="pattern-desc">User interface. Click-based Python CLI with commands like <code>launch</code>, <code>session</code>, <code>profile</code>, <code>shutdown</code>.</p>
+          <span style="display:block; margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-muted);">src/cli_agent_orchestrator/cli/</span>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-info-light); color: var(--color-info);">&#9881;</div>
+          <h3 class="pattern-title">cao-server</h3>
+          <p class="pattern-desc">State manager. FastAPI on port 9889 handling sessions, terminals, inbox, and the SQLite database.</p>
+          <span style="display:block; margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-muted);">src/cli_agent_orchestrator/api/</span>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: #F3EAFF; color: var(--color-actor-3);">&#9878;</div>
+          <h3 class="pattern-title">cao-mcp-server</h3>
+          <p class="pattern-desc">Agent toolbox. Exposes <code>handoff</code>, <code>assign</code>, <code>send_message</code>, <code>memory_*</code>, <code>load_skill</code> via FastMCP.</p>
+          <span style="display:block; margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-muted);">src/cli_agent_orchestrator/mcp_server/</span>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: #FFF8E6; color: var(--color-actor-4);">&#9638;</div>
+          <h3 class="pattern-title">tmux backend</h3>
+          <p class="pattern-desc">Process isolation. Creates sessions/windows per agent, runs <code>pipe-pane</code> to capture output into FIFOs.</p>
+          <span style="display:block; margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-muted);">src/cli_agent_orchestrator/clients/tmux.py</span>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-success-light); color: var(--color-success);">&#8644;</div>
+          <h3 class="pattern-title">Event Bus</h3>
+          <p class="pattern-desc">Async glue. Pub/sub connecting FifoReader, StatusMonitor, and InboxService without polling.</p>
+          <span style="display:block; margin-top:var(--space-2); font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-muted);">src/cli_agent_orchestrator/services/event_bus.py</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 3: How They Connect -->
+    <div class="screen animate-in" id="screen-2-3">
+      <h2 class="screen-heading">How They Connect</h2>
+      <p>Module 1 showed the high-level steps. Now let's see the same launch at the <em>component level</em> — which piece talks to which, and in what order:</p>
+
+      <div class="chat-window" id="chat-launch">
+        <div class="chat-messages">
+          <div class="chat-message" data-sender="cli" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-1)">Y</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-1)">You (CLI)</span>
+              <p><code>cao launch --agents code_supervisor --provider claude_code</code></p>
+            </div>
+          </div>
+          <div class="chat-message" data-sender="server" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-2)">S</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-2)">cao-server</span>
+              <p>Creating session <code>cao-my-session</code>, spawning tmux window...</p>
+            </div>
+          </div>
+          <div class="chat-message" data-sender="server" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-2)">S</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-2)">cao-server</span>
+              <p>Launching <code>claude_code</code> provider with profile system prompt</p>
+            </div>
+          </div>
+          <div class="chat-message" data-sender="tmux" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-4)">T</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-4)">tmux</span>
+              <p>Window ready. <code>pipe-pane</code> connected to FIFO.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-sender="eventbus" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-5)">E</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-5)">Event Bus</span>
+              <p>Publishing <code>terminal.a1b2c3d4.output</code> (agent is initializing)</p>
+            </div>
+          </div>
+          <div class="chat-message" data-sender="monitor" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-3)">M</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-3)">StatusMonitor</span>
+              <p>Status &rarr; <strong>IDLE</strong>. Agent ready for input.</p>
+            </div>
+          </div>
+          <div class="chat-message" data-sender="server" style="display:none">
+            <div class="chat-avatar" style="background: var(--color-actor-2)">S</div>
+            <div class="chat-bubble">
+              <span class="chat-sender" style="color: var(--color-actor-2)">cao-server</span>
+              <p>Attaching your terminal to the tmux session. You're in!</p>
+            </div>
+          </div>
+        </div>
+        <div class="chat-typing" style="display:none">
+          <div class="chat-avatar" style="background: var(--color-actor-2); width:28px; height:28px; font-size: 0.7rem;">?</div>
+          <div class="chat-typing-dots">
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+            <span class="typing-dot"></span>
+          </div>
+        </div>
+        <div class="chat-controls">
+          <button class="btn btn-primary chat-next-btn">Next</button>
+          <button class="btn chat-all-btn">Play All</button>
+          <button class="btn chat-reset-btn">Reset</button>
+          <span class="chat-progress">0 / 7 messages</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 4: Code — The CLI Entry Point -->
+    <div class="screen animate-in" id="screen-2-4">
+      <h2 class="screen-heading">Code: The CLI Entry Point</h2>
+
+      <div class="translation-block">
+        <div class="translation-code">
+          <span class="translation-label">cli/main.py</span>
+<span class="code-line"><span class="code-keyword">import</span> click</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-keyword">from</span> .commands <span class="code-keyword">import</span> (</span>
+<span class="code-line">    launch, session, shutdown,</span>
+<span class="code-line">    profile, schedule, config</span>
+<span class="code-line">)</span>
+<span class="code-line"></span>
+<span class="code-line"><span class="code-function">@click.group</span>()</span>
+<span class="code-line"><span class="code-keyword">def</span> <span class="code-function">cli</span>():</span>
+<span class="code-line">    <span class="code-string">"""CLI Agent Orchestrator."""</span></span>
+<span class="code-line"></span>
+<span class="code-line">cli.<span class="code-function">add_command</span>(launch)</span>
+<span class="code-line">cli.<span class="code-function">add_command</span>(session)</span>
+<span class="code-line">cli.<span class="code-function">add_command</span>(shutdown)</span>
+<span class="code-line">cli.<span class="code-function">add_command</span>(profile)</span>
+<span class="code-line">cli.<span class="code-function">add_command</span>(schedule)</span>
+<span class="code-line">cli.<span class="code-function">add_command</span>(config)</span>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">Plain English</span>
+          <div class="translation-lines">
+            <div class="tl">Import the <code>click</code> library for building CLI commands.</div>
+            <div class="tl">Pull in each command from separate files in the <code>commands/</code> folder.</div>
+            <div class="tl">Create the top-level <code>cao</code> command group.</div>
+            <div class="tl">Register each subcommand. Adding a new command (like <code>cao deploy</code>) means creating a file in <code>commands/</code> and adding one <code>add_command</code> line here.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-info">
+        <span class="callout-icon">&#128161;</span>
+        <div class="callout-content">
+          <span class="callout-title">Key Insight</span>
+          <p>Each command is a separate file in <code>cli/commands/</code>. The main file only wires them together. This means you can add new CLI commands without touching existing ones.</p>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</section>
+<section class="module" id="module-3">
+  <div class="module-content">
+
+    <div class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">How Agents Talk</h1>
+      <p class="module-subtitle">Three orchestration tools. Each creates a different collaboration style between supervisor and workers.</p>
+    </div>
+
+  <!-- Screen 1: Three Tools, Three Styles -->
+  <div class="screen" id="screen-3-1">
+    <h2>Three Tools, Three Styles</h2>
+    <p>
+      CAO gives agents exactly three MCP tools for inter-agent communication. Each one creates a
+      distinct interaction pattern between supervisor and worker, matching a real-world collaboration style.
+    </p>
+    <p>
+      Master these three and you understand everything about how CAO agents coordinate.
+    </p>
+
+    <div class="pattern-cards">
+
+      <div class="pattern-card">
+        <h3><code>handoff()</code></h3>
+        <p><strong>Sync.</strong> Blocks until the worker finishes. Auto-deletes on success.</p>
+        <p class="pattern-metaphor">Waiting by the door for your assistant to return.</p>
+      </div>
+
+      <div class="pattern-card">
+        <h3><code>assign()</code></h3>
+        <p><strong>Async.</strong> Returns immediately. Worker reports back later via inbox.</p>
+        <p class="pattern-metaphor">Dispatching a delivery and going back to work.</p>
+      </div>
+
+      <div class="pattern-card">
+        <h3><code>send_message()</code></h3>
+        <p><strong>Direct.</strong> Delivers to an existing agent's inbox. No new terminal.</p>
+        <p class="pattern-metaphor">Texting a colleague who's already working.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Screen 2: The Key Difference: Sync vs Async -->
+  <div class="screen" id="screen-3-2">
+    <h2>The Key Difference</h2>
+
+    <div class="pattern-cards">
+      <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2);">
+        <h3>handoff = Blocked</h3>
+        <p>Supervisor waits. Nothing else happens until the worker finishes or the 10-minute timeout hits.</p>
+        <p><strong>Use when:</strong> the next decision depends on the result.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-actor-5);">
+        <h3>assign = Free</h3>
+        <p>Supervisor continues immediately. Can fire multiple assigns back-to-back for parallel work.</p>
+        <p><strong>Use when:</strong> tasks are independent and can run simultaneously.</p>
+      </div>
+    </div>
+
+    <div class="translation-block animate-in">
+      <div class="translation-code">
+        <span class="translation-label">assign() internals</span>
+        <pre><code><span class="code-line"><span class="code-comment"># mcp_server/server.py</span></span>
+<span class="code-line">terminal = _create_terminal(</span>
+<span class="code-line">    agent_profile=agent_profile,</span>
+<span class="code-line">    message=message,</span>
+<span class="code-line">    defer_init=<span class="code-keyword">True</span>,</span>
+<span class="code-line">)</span>
+<span class="code-line"><span class="code-keyword">return</span> terminal[<span class="code-string">'id'</span>]</span></code></pre>
+      </div>
+      <div class="translation-english">
+        <span class="translation-label">Plain English</span>
+        <div class="translation-lines">
+          <p class="tl">&nbsp;</p>
+          <p class="tl">Create a new terminal for this agent...</p>
+          <p class="tl">with this task message...</p>
+          <p class="tl">but DON'T wait for it to start.</p>
+          <p class="tl">&nbsp;</p>
+          <p class="tl">Return the worker ID immediately.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: Match the Patterns (Drag-and-Drop) -->
+  <div class="screen" id="screen-3-3">
+    <h2>Match the Patterns</h2>
+    <p>Drag each chip into the correct zone:</p>
+
+    <div class="dnd-container" id="dnd-talk-patterns">
+      <div class="dnd-chips">
+        <div class="dnd-chip" draggable="true" data-answer="handoff">Blocks until worker finishes, then auto-deletes it</div>
+        <div class="dnd-chip" draggable="true" data-answer="assign">Returns immediately, worker reports back later</div>
+        <div class="dnd-chip" draggable="true" data-answer="send_message">Delivers to an existing terminal's inbox</div>
+      </div>
+      <div class="dnd-zones">
+        <div class="dnd-zone" data-correct="handoff">
+          <p class="dnd-zone-label">handoff()</p>
+          <div class="dnd-zone-target">Drop here</div>
+        </div>
+        <div class="dnd-zone" data-correct="assign">
+          <p class="dnd-zone-label">assign()</p>
+          <div class="dnd-zone-target">Drop here</div>
+        </div>
+        <div class="dnd-zone" data-correct="send_message">
+          <p class="dnd-zone-label">send_message()</p>
+          <div class="dnd-zone-target">Drop here</div>
+        </div>
+      </div>
+      <div style="margin-top: var(--space-4); display: flex; gap: var(--space-3);">
+        <button class="btn btn-primary quiz-check-btn" onclick="checkDnD('dnd-talk-patterns')">Check</button>
+        <button class="btn quiz-reset-btn" onclick="resetDnD('dnd-talk-patterns')">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: When to Use What (Scenario Quiz) -->
+  <div class="screen" id="screen-3-4">
+    <h2>When to Use What</h2>
+    <p>
+      Real orchestration decisions come down to one question: does the supervisor need
+      the result <em>right now</em>, or can it keep working? Pick the right tool for each scenario.
+    </p>
+
+    <div class="quiz-container" id="quiz-how-agents-talk">
+
+      <div class="quiz-question-block" data-correct="handoff" data-explanation-right="The merge depends on the review result, so you must block and wait for it." data-explanation-wrong="Since your next step depends on the review outcome, you need the synchronous (blocking) pattern: handoff.">
+        <p class="quiz-question"><strong>1.</strong> You need a code review before merging — the result determines your next step.</p>
+        <div class="quiz-options">
+          <button class="quiz-option" data-value="handoff" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>handoff — block until the review completes</span>
+          </button>
+          <button class="quiz-option" data-value="assign" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>assign — dispatch a reviewer asynchronously</span>
+          </button>
+          <button class="quiz-option" data-value="send_message" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>send_message — ask an existing agent to review</span>
+          </button>
+        </div>
+        <div class="quiz-feedback"></div>
+      </div>
+
+      <div class="quiz-question-block" data-correct="assign" data-explanation-right="Independent parallel work is the ideal use case for assign. All 5 workers run simultaneously while the supervisor plans ahead." data-explanation-wrong="These tasks are independent and should run in parallel. Assign dispatches workers without blocking the supervisor.">
+        <p class="quiz-question"><strong>2.</strong> You want 5 workers building different microservices simultaneously while the supervisor plans the integration.</p>
+        <div class="quiz-options">
+          <button class="quiz-option" data-value="handoff" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>handoff — wait for each one sequentially</span>
+          </button>
+          <button class="quiz-option" data-value="assign" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>assign — dispatch all 5 in parallel</span>
+          </button>
+          <button class="quiz-option" data-value="send_message" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>send_message — message 5 existing workers</span>
+          </button>
+        </div>
+        <div class="quiz-feedback"></div>
+      </div>
+
+      <div class="quiz-question-block" data-correct="send_message" data-explanation-right="The supervisor already exists — no new terminal needed. send_message delivers directly to its inbox." data-explanation-wrong="The target agent already exists. No new terminal is needed — just deliver a message to its inbox with send_message.">
+        <p class="quiz-question"><strong>3.</strong> A worker finished its task and needs to tell the supervisor it's done.</p>
+        <div class="quiz-options">
+          <button class="quiz-option" data-value="handoff" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>handoff — create a new agent to deliver the message</span>
+          </button>
+          <button class="quiz-option" data-value="assign" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>assign — spawn a messenger worker</span>
+          </button>
+          <button class="quiz-option" data-value="send_message" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>send_message — deliver directly to the supervisor's inbox</span>
+          </button>
+        </div>
+        <div class="quiz-feedback"></div>
+      </div>
+
+      <div style="margin-top: var(--space-6);">
+        <button class="btn btn-primary quiz-check-btn" onclick="checkQuiz('quiz-how-agents-talk')">Check Answers</button>
+        <button class="btn quiz-reset-btn" onclick="resetQuiz('quiz-how-agents-talk')">Try Again</button>
+      </div>
+
+      <div class="callout callout-info" style="margin-top: var(--space-8);">
+        <strong>Rule of thumb:</strong> Need the result now? Use handoff. Work is independent? Use assign. Target already running? Use send_message.
+      </div>
+    </div>
+  </div>
+
+  </div>
+</section>
+<section class="module" id="module-4">
+  <div class="module-content">
+
+    <div class="module-header animate-in">
+      <span class="module-number">04</span>
+      <h1 class="module-title">The Event Pipeline</h1>
+      <p class="module-subtitle">How CAO detects agent state and delivers messages at the right time — without polling.</p>
+    </div>
+
+  <!-- Screen 1: The Newsroom Metaphor -->
+  <div class="screen" id="screen-4-1">
+    <h2>The Event Pipeline</h2>
+    <p>
+      You saw in Module 2 that the Event Bus connects CAO's components. Now let's look at what
+      actually flows through it — and the five specialized services that make message delivery feel instant.
+    </p>
+    <p>
+      Think of it as a newsroom. Reporters (FIFOs) feed raw stories into a
+      wire service (EventBus), editors (StatusMonitor) decide what is breaking news, and the
+      dispatch desk (InboxService) routes the right story to the right person at the right time.
+    </p>
+
+    <div class="icon-rows">
+      <div class="icon-row">
+        <div class="icon-circle" style="background: var(--color-actor-1); color: white;">F</div>
+        <div>
+          <strong>FifoReader (Reporters)</strong>
+          <p>Reads raw bytes from named FIFOs at <code>~/.aws/cli-agent-orchestrator/fifos/{id}.fifo</code>. Coalesces rapid-fire chunks within a 50ms window before publishing.</p>
+        </div>
+      </div>
+      <div class="icon-row">
+        <div class="icon-circle" style="background: var(--color-actor-2); color: white;">B</div>
+        <div>
+          <strong>EventBus (Wire Service)</strong>
+          <p>Async pub/sub backbone. Wildcard topic matching (<code>terminal.*.output</code>), bounded queues (16,384 default), drop-and-log on overflow.</p>
+        </div>
+      </div>
+      <div class="icon-row">
+        <div class="icon-circle" style="background: var(--color-actor-3); color: white;">S</div>
+        <div>
+          <strong>StatusMonitor (Editors)</strong>
+          <p>Maintains an 8KB rolling buffer per terminal. Runs provider-specific pattern matching to detect IDLE, PROCESSING, COMPLETED, WAITING_USER_ANSWER, or ERROR. Uses debounced edge detection with a sticky latch.</p>
+        </div>
+      </div>
+      <div class="icon-row">
+        <div class="icon-circle" style="background: var(--color-actor-5); color: white;">I</div>
+        <div>
+          <strong>InboxService (Dispatch Desk)</strong>
+          <p>Routes the right message at the right time. When a terminal reaches IDLE or COMPLETED, delivers any PENDING messages waiting in its inbox.</p>
+        </div>
+      </div>
+      <div class="icon-row">
+        <div class="icon-circle" style="background: var(--color-actor-4); color: white;">L</div>
+        <div>
+          <strong>LogWriter (Archivist)</strong>
+          <p>Subscribes to <code>terminal.*.output</code> alongside everyone else. Batches writes to per-terminal log files so you always have a full record.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Watch a Chunk Travel -->
+  <div class="screen" id="screen-4-2">
+    <h2>Watch a Chunk Travel</h2>
+    <p>
+      Follow a single piece of terminal output as it flows through every stage of the pipeline.
+      Notice how the EventBus appears twice -- once routing raw output, once routing the
+      derived status change. This two-phase publish is the key to decoupling detection from delivery.
+    </p>
+
+    <div class="flow-animation animate-in" data-steps='[
+      {"label":"tmux pipe-pane: Agent prints idle prompt text","highlight":"flow-pipe"},
+      {"label":"FifoReader: Reads from FIFO, coalesces 50ms, publishes terminal.a1b2.output","highlight":"flow-fifo"},
+      {"label":"EventBus: Routes to all subscribers of terminal.*.output","highlight":"flow-bus"},
+      {"label":"StatusMonitor: Buffer updated → pattern match → status = IDLE","highlight":"flow-status"},
+      {"label":"EventBus: Publishes terminal.a1b2.status = IDLE","highlight":"flow-bus"},
+      {"label":"InboxService: IDLE detected! Delivering 1 pending message...","highlight":"flow-inbox"},
+      {"label":"LogWriter: Appends chunk to logs/terminal/a1b2.log","highlight":"flow-log"}
+    ]'>
+      <div class="flow-actors">
+        <div class="flow-actor" id="flow-pipe">
+          <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: #3b82f6;">P</div>
+          <span>pipe-pane</span>
+        </div>
+        <div class="flow-actor" id="flow-fifo">
+          <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-2);">F</div>
+          <span>FifoReader</span>
+        </div>
+        <div class="flow-actor" id="flow-bus">
+          <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-3);">B</div>
+          <span>EventBus</span>
+        </div>
+        <div class="flow-actor" id="flow-status">
+          <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-4);">S</div>
+          <span>StatusMonitor</span>
+        </div>
+        <div class="flow-actor" id="flow-inbox">
+          <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: var(--color-actor-5);">I</div>
+          <span>InboxService</span>
+        </div>
+        <div class="flow-actor" id="flow-log">
+          <div class="flow-actor-icon" style="background: var(--color-accent-light); border-color: #3b82f6;">L</div>
+          <span>LogWriter</span>
+        </div>
+      </div>
+      <div class="flow-step-label">Click "Next Step" to begin</div>
+      <div class="flow-packet"></div>
+      <div class="flow-controls">
+        <button class="btn btn-primary flow-next-btn">Next Step &rarr;</button>
+        <button class="btn flow-reset-btn">Reset</button>
+        <span class="flow-progress">Step 0 / 7</span>
+      </div>
+    </div>
+
+    <div class="callout callout-info">
+      <div class="callout-icon">&#128161;</div>
+      <div class="callout-content">
+        <span class="callout-title">Key Insight: Two-Phase Publish</span>
+        <p>The EventBus carries two kinds of topics: <code>terminal.{id}.output</code> for raw data, and <code>terminal.{id}.status</code> for derived state changes. StatusMonitor subscribes to the first and publishes the second. InboxService only subscribes to the second -- it never sees raw output.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: The Sticky Latch -->
+  <div class="screen" id="screen-4-3">
+    <h2>The Sticky Latch</h2>
+    <p>
+      StatusMonitor uses <strong>debounced edge detection</strong> -- it does not re-evaluate
+      status on every single chunk. Instead it waits for output to settle, then checks. And
+      once it determines a terminal is IDLE, it applies a "sticky latch":
+    </p>
+
+    <div class="callout callout-info">
+      <div class="callout-icon">&#128274;</div>
+      <div class="callout-content">
+        <span class="callout-title">Why a Latch?</span>
+        <p>Once an agent reaches IDLE, the StatusMonitor latches that status. It will not drop to PROCESSING just because the TUI redraws a progress bar or refreshes the screen. Only new explicit input (via <code>send_message</code> or <code>cao session send</code>) unlocks the latch and allows a transition back to PROCESSING.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-accent">
+      <div class="callout-icon">&#9888;&#65039;</div>
+      <div class="callout-content">
+        <span class="callout-title">Without the Latch</span>
+        <p>A TUI redraw would momentarily look like new output, causing StatusMonitor to flip the terminal to PROCESSING. InboxService would then hold messages hostage until the next IDLE detection -- leading to random 5-30 second delivery delays.</p>
+      </div>
+    </div>
+
+    <p>
+      Here is the core loop, simplified. The real code adds debouncing, buffer rotation, and
+      the latch logic, but the publish/subscribe pattern remains the same:
+    </p>
+
+    <div class="translation-block">
+      <div class="translation-code">
+        <span class="translation-label">Python</span>
+<pre><code><span class="code-comment"># services/event_bus.py (simplified)</span>
+<span class="code-keyword">queue</span> = bus.subscribe(<span class="code-string">"terminal.*.output"</span>)  <span class="code-comment"># wildcard!</span>
+<span class="code-keyword">async for</span> topic, data <span class="code-keyword">in</span> queue:
+    terminal_id = topic.split(<span class="code-string">"."</span>)[<span class="code-number">1</span>]
+    buffer[terminal_id] += data
+    status = provider.get_status(buffer[terminal_id])
+    <span class="code-keyword">if</span> status != last_status[terminal_id]:
+        bus.publish(<span class="code-function">f</span><span class="code-string">"terminal.{terminal_id}.status"</span>, status)</code></pre>
+      </div>
+      <div class="translation-english">
+        <span class="translation-label">Plain English</span>
+        <div class="translation-lines">
+          <div class="tl">Subscribe to ALL terminal output using a wildcard pattern.</div>
+          <div class="tl">When new data arrives, extract the terminal ID from the topic.</div>
+          <div class="tl">Append the data to that terminal's rolling buffer.</div>
+          <div class="tl">Ask the provider-specific detector what state the terminal is in.</div>
+          <div class="tl">If the state changed from last time, announce the new status on the bus.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+</section>
+<section class="module" id="module-5">
+  <div class="module-content">
+
+    <div class="module-header animate-in">
+      <span class="module-number">05</span>
+      <h1 class="module-title">Running Your Own Agents</h1>
+      <p class="module-subtitle">From install to your first multi-agent session in 5 minutes.</p>
+    </div>
+
+  <!-- Screen 1: From Zero to Multi-Agent in 5 Minutes -->
+  <div class="screen" id="screen-5-1">
+    <h2>From Zero to Multi-Agent in 5 Minutes</h2>
+
+    <div class="callout callout-accent animate-in">
+      <div class="callout-icon">&#9888;&#65039;</div>
+      <div class="callout-content">
+        <span class="callout-title">Prerequisites</span>
+        <p><strong>Python 3.10+</strong>, <strong>tmux</strong>, and at least one AI CLI agent (Claude Code, Kiro CLI, or Codex). CAO requires macOS or Linux — tmux is not available on Windows.</p>
+      </div>
+    </div>
+
+    <p>Six commands take you from nothing installed to a fully running multi-agent session:</p>
+
+    <div class="step-cards">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Install</strong>
+          <p><code>uv tool install cli-agent-orchestrator</code> &mdash; Downloads the CAO binary and all dependencies in one shot.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>Start the server</strong>
+          <p><code>cao-server</code> &mdash; Launches the FastAPI orchestration service. Keep this terminal open; everything else talks to it.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Launch a session</strong>
+          <p><code>cao launch --agents code_supervisor --session-name demo --provider claude_code</code> &mdash; Creates a tmux session and starts the supervisor agent inside it.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Observe</strong>
+          <p><code>cao session status demo --workers</code> &mdash; Shows the session state: which agents are running, idle, or finished.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>Send more work</strong>
+          <p><code>cao session send demo "Add unit tests"</code> &mdash; Injects a new task into the supervisor's inbox without restarting anything.</p>
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <strong>Shut down</strong>
+          <p><code>cao shutdown --all</code> &mdash; Terminates all agent tmux sessions and cleans up terminal records. The server keeps running.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">i</span>
+      <div class="callout-content">
+        <span class="callout-title">Keeping up to date</span>
+        <p>Run <code>cao update</code> to pull the latest version. Use <code>cao profile list</code> to see all available agent profiles on your machine.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 2: Anatomy of a Profile -->
+  <div class="screen" id="screen-5-2">
+    <h2>Anatomy of a Profile</h2>
+    <p>Profiles are markdown files with YAML frontmatter. They live in a standard directory:</p>
+
+    <div class="file-tree">
+      <div class="ft-folder">
+        <span class="ft-name">~/.aws/cli-agent-orchestrator/</span>
+        <div class="ft-children">
+          <div class="ft-folder">
+            <span class="ft-name">agent-store/</span>
+            <span class="ft-desc">&mdash; all profile definitions live here</span>
+            <div class="ft-children">
+              <div class="ft-file"><span class="ft-name">code_supervisor.md</span></div>
+              <div class="ft-file"><span class="ft-name">developer.md</span></div>
+              <div class="ft-file"><span class="ft-name">reviewer.md</span></div>
+            </div>
+          </div>
+          <div class="ft-folder">
+            <span class="ft-name">db/</span>
+            <span class="ft-desc">&mdash; session state and message history</span>
+          </div>
+          <div class="ft-folder">
+            <span class="ft-name">logs/</span>
+            <span class="ft-desc">&mdash; per-terminal agent output logs</span>
+          </div>
+          <div class="ft-folder">
+            <span class="ft-name">memory/</span>
+            <span class="ft-desc">&mdash; persistent context between sessions</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="translation-block">
+      <div class="translation-code">
+        <span class="translation-label">profile</span>
+<pre><code><span class="code-line"><span class="code-operator">---</span></span>
+<span class="code-line"><span class="code-property">name:</span> <span class="code-string">code_supervisor</span></span>
+<span class="code-line"><span class="code-property">description:</span> <span class="code-string">Coding Supervisor Agent</span></span>
+<span class="code-line"><span class="code-property">provider:</span> <span class="code-string">claude_code</span></span>
+<span class="code-line"><span class="code-property">role:</span> <span class="code-string">supervisor</span></span>
+<span class="code-line"><span class="code-operator">---</span></span>
+<span class="code-line"><span class="code-comment">You are a supervisor. Delegate to</span></span>
+<span class="code-line"><span class="code-comment">`developer` and `reviewer` profiles.</span></span></code></pre>
+      </div>
+      <div class="translation-english">
+        <span class="translation-label">Plain English</span>
+        <div class="translation-lines">
+          <div class="tl"><code>name</code> &mdash; Unique identifier passed to <code>--agents</code></div>
+          <div class="tl"><code>description</code> &mdash; Human label shown in <code>cao profile list</code></div>
+          <div class="tl"><code>provider</code> &mdash; Which AI CLI runs this agent (claude_code, kiro_cli, codex, etc.)</div>
+          <div class="tl"><code>role</code> &mdash; Determines default tool access (supervisor, developer, reviewer)</div>
+          <div class="tl"><strong>Body (below the frontmatter)</strong> &mdash; The system prompt injected into the agent at launch</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 3: The Role System -->
+  <div class="screen" id="screen-5-3">
+    <h2>The Role System</h2>
+    <p>Each role grants a specific set of tools. Choose the narrowest role that fits the agent's job.</p>
+
+    <div class="pattern-cards">
+      <div class="pattern-card">
+        <div class="pattern-icon" style="background: var(--color-actor-1); color: white;">S</div>
+        <div class="pattern-title">supervisor</div>
+        <p class="pattern-desc">Orchestrates other agents. Cannot edit files or run commands directly.</p>
+        <div style="margin-top: var(--space-3);">
+          <code style="font-size: var(--text-xs); color: var(--color-text-muted);">@cao-mcp-server, fs_read, fs_list</code>
+        </div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-icon" style="background: var(--color-actor-2); color: white;">D</div>
+        <div class="pattern-title">developer</div>
+        <p class="pattern-desc">Full execution environment. Reads, writes, runs commands, fetches URLs, and coordinates via MCP.</p>
+        <div style="margin-top: var(--space-3);">
+          <code style="font-size: var(--text-xs); color: var(--color-text-muted);">@builtin, fs_*, execute_bash, web_fetch, @cao-mcp-server</code>
+        </div>
+      </div>
+
+      <div class="pattern-card">
+        <div class="pattern-icon" style="background: var(--color-actor-5); color: white;">R</div>
+        <div class="pattern-title">reviewer</div>
+        <p class="pattern-desc">Read-only access. Can inspect code and communicate findings but cannot modify anything.</p>
+        <div style="margin-top: var(--space-3);">
+          <code style="font-size: var(--text-xs); color: var(--color-text-muted);">@builtin, fs_read, fs_list, @cao-mcp-server</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout callout-warning">
+      <span class="callout-icon">!</span>
+      <div class="callout-content">
+        <span class="callout-title">The --yolo flag</span>
+        <p>The <code>--yolo</code> flag removes ALL restrictions &mdash; useful for experimentation but dangerous for production. The agent can run any command including <code>rm -rf</code> and <code>aws</code> calls.</p>
+      </div>
+    </div>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">i</span>
+      <div class="callout-content">
+        <span class="callout-title">Provider-agnostic orchestration</span>
+        <p>Providers are interchangeable &mdash; the orchestration layer is provider-agnostic. A supervisor on Claude Code can assign workers to Kiro CLI, Codex, or any mix.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Quiz -->
+  <div class="screen" id="screen-5-4">
+    <h2>Final Check</h2>
+
+    <div class="quiz-container" id="quiz-running">
+
+      <div class="quiz-question-block" data-correct="server-first" data-explanation-right="cao-server must be running before any other command can reach the orchestration layer." data-explanation-wrong="The CLI communicates with cao-server over HTTP. If the server is not running, there is nothing to connect to.">
+        <p class="quiz-question">1. You installed CAO but <code>cao launch</code> says "Failed to connect to cao-server". What's wrong?</p>
+        <div class="quiz-options">
+          <button class="quiz-option" data-value="reinstall" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>You need to reinstall with <code>uv tool install --force</code></span>
+          </button>
+          <button class="quiz-option" data-value="server-first" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>cao-server is not running &mdash; start it first in another terminal</span>
+          </button>
+          <button class="quiz-option" data-value="port" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>tmux is not installed on your system</span>
+          </button>
+        </div>
+        <div class="quiz-feedback"></div>
+      </div>
+
+      <div style="margin-top: var(--space-6);">
+        <button class="btn btn-primary quiz-check-btn" onclick="checkQuiz('quiz-running')">Check Answers</button>
+        <button class="btn quiz-reset-btn" onclick="resetQuiz('quiz-running')">Try Again</button>
+      </div>
+    </div>
+
+    <p style="margin-top: var(--space-8); font-size: var(--text-lg); font-weight: 600; font-family: var(--font-display);">
+      You now understand how CAO works &mdash; from architecture to event pipeline to hands-on usage. Go build something with multiple agents.
+    </p>
+
+    <div style="margin-top: var(--space-6); padding: var(--space-5); background: var(--color-accent-light); border-radius: var(--radius-md); text-align: center;">
+      <p style="margin: 0 0 var(--space-3); font-weight: 600;">Ready for more?</p>
+      <p style="margin: 0 0 var(--space-4); color: var(--color-text-muted);">Learn about Workflows, Skills, Scheduled Flows, and the Ops MCP Server.</p>
+      <a href="../course-advanced/index.html" class="btn btn-primary" style="text-decoration: none;">Advanced Features &rarr;</a>
+    </div>
+  </div>
+
+  </div>
+</section>
+  </main>
+
+</body>
+</html>

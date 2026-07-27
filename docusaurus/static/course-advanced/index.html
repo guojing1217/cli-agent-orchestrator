@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CAO Advanced Features — Interactive Course</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400;1,9..40,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --color-accent:       #7B6DAA;
+      --color-accent-hover: #6358A0;
+      --color-accent-light: #F3EAFF;
+      --color-accent-muted: #9B8DC0;
+    }
+
+    /* Screen headings */
+    .screen h2 {
+      color: var(--color-accent);
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-2);
+      border-bottom: 2px solid var(--color-accent-light);
+    }
+
+    /* Pattern card title spacing */
+    .pattern-card h3 {
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* Word wrap for callouts */
+    .callout, .callout p, .pattern-card, .pattern-card p {
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
+    /* Unified button style */
+    .flow-step-label { font-weight: 600; transition: color 0.3s ease; }
+  </style>
+
+  <script src="main.js" defer></script>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    <div class="nav-inner">
+      <span class="nav-title">CAO Advanced</span>
+      <div class="nav-dots" id="nav-dots" role="tablist">
+        <button class="nav-dot" data-target="module-1" data-tooltip="Workflows" role="tab" aria-label="Module 1: Workflows"></button>
+        <button class="nav-dot" data-target="module-2" data-tooltip="Skills & Install" role="tab" aria-label="Module 2: Skills & Install"></button>
+        <button class="nav-dot" data-target="module-3" data-tooltip="Automation & Ops" role="tab" aria-label="Module 3: Automation & Ops"></button>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+<section class="module" id="module-1">
+  <div class="module-content">
+
+    <!-- Module Header -->
+    <div class="module-header animate-in">
+      <span class="module-number">01</span>
+      <h1 class="module-title">Workflows</h1>
+      <p class="module-subtitle">Declarative YAML pipelines that turn multi-step agent tasks into repeatable, validated, resumable sequences.</p>
+    </div>
+
+    <!-- SCREEN 1 — Why Workflows? -->
+    <div class="screen" id="screen-1-1">
+      <h2 class="screen-heading animate-in">Why Workflows?</h2>
+
+      <p class="animate-in">
+        The supervisor pattern with <code>assign()</code> is powerful — it lets a creative agent decompose
+        problems on the fly, delegate to workers in parallel, and adapt to unexpected results.
+        But sometimes you do not want creativity. You want a <strong>fixed pipeline</strong> that runs the
+        same steps, in the same order, every time.
+      </p>
+
+      <p class="animate-in">
+        Workflows give you exactly that: a declarative YAML spec that defines each step, its inputs,
+        its outputs, and how data flows between them. No improvisation, no skipped steps, no
+        variation between runs.
+      </p>
+
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-actor-5);">
+          <h3>Supervisor + assign()</h3>
+          <p><strong>Flexible and creative.</strong> The supervisor decides what to do next based on results. Great for novel, open-ended tasks.</p>
+        </div>
+        <div class="pattern-card animate-in" style="border-top: 3px solid var(--color-accent);">
+          <h3>Workflows</h3>
+          <p><strong>Deterministic and repeatable.</strong> Steps are fixed in advance. Inputs and outputs have JSON Schema validation. Runs are journaled and resumable.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2 — Anatomy of a Workflow -->
+    <div class="screen" id="screen-1-2">
+      <h2 class="screen-heading animate-in">Anatomy of a Workflow</h2>
+
+      <p class="animate-in">
+        A workflow spec is a flat YAML file with top-level metadata and a list of steps.
+        Specs live in <code>~/.aws/cli-agent-orchestrator/workflows/</code>.
+      </p>
+
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">workflow spec (YAML)</span>
+<pre><span class="code-keyword">name:</span> <span class="code-string">code-review-pipeline</span>
+<span class="code-keyword">description:</span> <span class="code-string">Automated PR review pipeline</span>
+<span class="code-keyword">inputs:</span>
+  <span class="code-keyword">pr_url:</span>
+    <span class="code-keyword">type:</span> <span class="code-string">string</span>
+    <span class="code-keyword">required:</span> <span class="code-string">true</span>
+<span class="code-keyword">steps:</span>
+  - <span class="code-keyword">id:</span> <span class="code-string">fetch-diff</span>
+    <span class="code-keyword">provider:</span> <span class="code-string">claude_code</span>
+    <span class="code-keyword">agent:</span> <span class="code-string">developer</span>
+    <span class="code-keyword">prompt:</span> <span class="code-string">"Fetch the diff from {{pr_url}} and summarize"</span>
+
+  - <span class="code-keyword">id:</span> <span class="code-string">review-security</span>
+    <span class="code-keyword">provider:</span> <span class="code-string">claude_code</span>
+    <span class="code-keyword">agent:</span> <span class="code-string">reviewer</span>
+    <span class="code-keyword">prompt:</span> <span class="code-string">"Review for security issues: {{steps.fetch-diff.output}}"</span>
+
+  - <span class="code-keyword">id:</span> <span class="code-string">review-quality</span>
+    <span class="code-keyword">provider:</span> <span class="code-string">kiro_cli</span>
+    <span class="code-keyword">agent:</span> <span class="code-string">reviewer</span>
+    <span class="code-keyword">prompt:</span> <span class="code-string">"Review for code quality: {{steps.fetch-diff.output}}"</span></pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">Plain English</span>
+          <div class="translation-lines">
+            <div class="tl"><code>name:</code> — workflow identifier used to run it</div>
+            <div class="tl"><code>description:</code> — human-readable summary</div>
+            <div class="tl"><code>inputs:</code> — dictionary of typed parameters</div>
+            <div class="tl">Each input key has <code>type</code> and <code>required</code> fields</div>
+            <div class="tl">&nbsp;</div>
+            <div class="tl">&nbsp;</div>
+            <div class="tl"><code>steps:</code> — sequential list of steps to execute</div>
+            <div class="tl"><code>id:</code> — unique step identifier used to reference outputs</div>
+            <div class="tl"><code>provider:</code> — which AI CLI runs this step (required)</div>
+            <div class="tl"><code>agent:</code> — agent profile for this step</div>
+            <div class="tl"><code>prompt:</code> — message sent to the agent; supports <code>{{}}</code> interpolation</div>
+            <div class="tl">&nbsp;</div>
+            <div class="tl">Step 2: <code>id:</code> gives it a unique name for later reference</div>
+            <div class="tl"><code>provider:</code> can differ per step (here claude_code)</div>
+            <div class="tl"><code>{{steps.fetch-diff.output}}</code> — references output from a previous step by its <code>id</code></div>
+            <div class="tl">&nbsp;</div>
+            <div class="tl">Step 3: uses a different provider (kiro_cli)</div>
+            <div class="tl">Same <code>agent</code> profile but different <code>provider</code></div>
+            <div class="tl"><code>{{steps.ID.output}}</code> references any earlier step's output by its <code>id</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3 — Running a Workflow -->
+    <div class="screen" id="screen-1-3">
+      <h2 class="screen-heading animate-in">Running a Workflow</h2>
+
+      <p class="animate-in">
+        From authoring to monitoring — the lifecycle of a workflow run:
+      </p>
+
+      <div class="stagger-children">
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">1</div>
+          <div>
+            <strong>Validate the spec</strong>
+            <p><code>cao workflow validate my-pipeline.yaml</code> — catches schema errors, invalid references, and constraint violations (max 100 steps, 256KB limit) before you run anything.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">2</div>
+          <div>
+            <strong>Start the run</strong>
+            <p><code>cao workflow run code-review-pipeline --input pr_url=https://...</code> — launches the workflow with the required inputs. Returns a <code>RUN_ID</code>.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">3</div>
+          <div>
+            <strong>Steps execute sequentially</strong>
+            <p>Each step launches an agent via <code>run_agent_step</code> (same substrate as handoff). Steps run one at a time, each with a 600-second timeout and up to 3 retries.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">4</div>
+          <div>
+            <strong>Data flows between steps</strong>
+            <p>Step outputs are captured and available to later steps via <code>{{steps.ID.output}}</code> template expressions, where <code>ID</code> is the step's <code>id:</code> field. Outputs are validated against JSON Schema if defined.</p>
+          </div>
+        </div>
+
+        <div class="icon-row animate-in">
+          <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">5</div>
+          <div>
+            <strong>Monitor progress</strong>
+            <p><code>cao workflow status RUN_ID</code> — see which step is currently executing, which have completed, and the overall run state.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Callout: Resume -->
+      <div class="callout callout-accent animate-in">
+        <div class="callout-icon">&#9889;</div>
+        <div class="callout-content">
+          <span class="callout-title">Resume from crash</span>
+          <p>CAO journals every step completion. If a run is interrupted — process killed, machine reboots, network drops — <code>cao workflow resume RUN_ID</code> picks up exactly where it left off. No repeated work, no lost state.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="screen" id="screen-1-4">
+      <h2 class="screen-heading animate-in">Check Your Understanding</h2>
+
+      <div class="quiz-container" id="quiz-workflows">
+
+        <div class="quiz-question-block" data-correct="repeatable" data-explanation-right="Workflows are for fixed, repeatable pipelines with validated I/O. When you need the same steps every time with structured data flowing between them, a workflow is the right choice." data-explanation-wrong="A supervisor with assign is flexible and creative — great for novel tasks. But when you need a repeatable, validated pipeline with structured inputs/outputs and crash recovery, use a workflow.">
+          <p class="quiz-question"><strong>1.</strong> When would you choose a workflow over a supervisor with <code>assign()</code>?</p>
+          <div class="quiz-options">
+            <button class="quiz-option" data-value="creative" onclick="selectOption(this)">
+              <span class="quiz-option-radio"></span>
+              <span>When you need the agent to creatively decompose a novel problem</span>
+            </button>
+            <button class="quiz-option" data-value="repeatable" onclick="selectOption(this)">
+              <span class="quiz-option-radio"></span>
+              <span>When you need a repeatable, validated pipeline with structured I/O between steps</span>
+            </button>
+            <button class="quiz-option" data-value="single" onclick="selectOption(this)">
+              <span class="quiz-option-radio"></span>
+              <span>When you only have a single step to execute</span>
+            </button>
+            <button class="quiz-option" data-value="parallel" onclick="selectOption(this)">
+              <span class="quiz-option-radio"></span>
+              <span>When you want maximum parallelism across independent tasks</span>
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div style="margin-top: var(--space-6);">
+          <button class="btn btn-primary quiz-check-btn" onclick="checkQuiz('quiz-workflows')">Check Answer</button>
+          <button class="btn quiz-reset-btn" onclick="resetQuiz('quiz-workflows')">Try Again</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-2">
+  <div class="module-content">
+
+    <!-- Module Header -->
+    <div class="module-header animate-in">
+      <span class="module-number">02</span>
+      <h1 class="module-title">Skills &amp; Install</h1>
+      <p class="module-subtitle">Reusable behavior modules that agents load on demand, and the install system that wires everything together.</p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCREEN 1 — Skills
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-2-1">
+      <h2 class="screen-heading animate-in">Skills</h2>
+
+      <p class="animate-in">
+        A <strong>skill</strong> is a folder containing a <code>SKILL.md</code> file with structured instructions
+        that an agent can load at runtime. Skills live in <code>~/.aws/cli-agent-orchestrator/skills/</code>
+        and are managed via the CLI: <code>cao skills add</code>, <code>cao skills remove</code>, <code>cao skills list</code>.
+      </p>
+
+      <p class="animate-in">
+        When an agent needs a skill, it calls the <code>load_skill(name)</code> MCP tool.
+        For Kiro CLI, skills are delivered natively via <code>skill://</code> resources in the agent JSON.
+        For other providers, they are loaded on-demand through the MCP server.
+      </p>
+
+      <div class="pattern-cards stagger-children">
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-accent-light); color: var(--color-accent);">&#9998;</div>
+          <h3 class="pattern-title">What's in a Skill</h3>
+          <p class="pattern-desc">A folder with a <code>SKILL.md</code> file containing step-by-step instructions, constraints, and examples. The agent receives this content verbatim when it loads the skill.</p>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-info-light); color: var(--color-info);">&#9672;</div>
+          <h3 class="pattern-title">How Agents Discover Them</h3>
+          <p class="pattern-desc">Agents call <code>load_skill(name)</code> at runtime. The MCP server resolves the name to the skill folder, reads <code>SKILL.md</code>, and returns its content directly into the agent's context.</p>
+        </div>
+
+        <div class="pattern-card animate-in">
+          <div class="pattern-icon" style="background: var(--color-success-light); color: var(--color-success);">&#9654;</div>
+          <h3 class="pattern-title">Built-in Skills</h3>
+          <p class="pattern-desc">CAO ships with skills for: supervisor protocol, worker protocol, memory usage, and workflow authoring. These cover the most common multi-agent patterns out of the box.</p>
+        </div>
+      </div>
+
+      <div class="icon-row animate-in">
+        <div class="icon-circle" style="background: var(--color-accent-light); color: var(--color-accent);">+</div>
+        <div>
+          <strong><code>cao skills add ./my-custom-skill</code></strong>
+          <p>Copies the skill folder into the skills directory, making it available to all agents immediately.</p>
+        </div>
+      </div>
+
+      <div class="icon-row animate-in">
+        <div class="icon-circle" style="background: var(--color-error-light); color: var(--color-error);">&minus;</div>
+        <div>
+          <strong><code>cao skills remove my-custom-skill</code></strong>
+          <p>Removes the skill from the skills directory. Running agents that already loaded it are unaffected.</p>
+        </div>
+      </div>
+
+      <div class="icon-row animate-in">
+        <div class="icon-circle" style="background: var(--color-info-light); color: var(--color-info);">&#8801;</div>
+        <div>
+          <strong><code>cao skills list</code></strong>
+          <p>Shows all installed skills with their names and descriptions.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SCREEN 2 — Installing Agents
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-2-2">
+      <h2 class="screen-heading animate-in">Installing Agents</h2>
+
+      <p class="animate-in">
+        The <code>cao install</code> command takes a profile name, local path, or URL and sets it up
+        for your provider automatically. No manual JSON editing or config wrangling required.
+      </p>
+
+      <div class="step-cards stagger-children">
+        <div class="step-card animate-in">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Install the profile</strong>
+            <p><code>cao install code_supervisor</code> &mdash; Fetches the profile definition and writes it to the agent store. Also accepts paths (<code>./my-agent.md</code>) or URLs (<code>https://example.com/agent.md</code>).</p>
+          </div>
+        </div>
+
+        <div class="step-card animate-in">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Provider-specific setup happens automatically</strong>
+            <p>For Kiro CLI, CAO writes the agent JSON with <code>skill://</code> resources. For Claude Code and Codex, it writes a context file (no provider-specific config needed). You never touch provider configs directly.</p>
+          </div>
+        </div>
+
+        <div class="step-card animate-in">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Set secrets with <code>cao env</code></strong>
+            <p><code>cao env set ANTHROPIC_API_KEY sk-...</code> &mdash; Stores the variable in <code>~/.aws/cli-agent-orchestrator/.env</code>. Profiles reference them with <code>${VAR}</code> syntax.</p>
+          </div>
+        </div>
+
+        <div class="step-card animate-in">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Verify the installation</strong>
+            <p><code>cao profile list</code> &mdash; Confirms the profile is registered and shows its provider, role, and referenced skills.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="translation-block animate-in">
+        <div class="translation-code">
+          <span class="translation-label">terminal</span>
+<pre><span class="code-comment"># Install from built-in registry</span>
+<span class="code-function">cao install</span> code_supervisor
+
+<span class="code-comment"># Install from a local file</span>
+<span class="code-function">cao install</span> <span class="code-string">./my-agent.md</span>
+
+<span class="code-comment"># Install from URL with env var</span>
+<span class="code-function">cao install</span> <span class="code-string">https://example.com/agent.md</span> \
+  <span class="code-string">--env TEAM=platform</span>
+
+<span class="code-comment"># Manage environment variables</span>
+<span class="code-function">cao env set</span> ANTHROPIC_API_KEY sk-...
+<span class="code-function">cao env list</span>
+<span class="code-function">cao env unset</span> ANTHROPIC_API_KEY</pre>
+        </div>
+        <div class="translation-english">
+          <span class="translation-label">What each command does</span>
+          <div class="translation-lines">
+            <div class="tl">Downloads and registers the built-in code_supervisor profile</div>
+            <div class="tl">Installs a custom profile from a local markdown file</div>
+            <div class="tl">Fetches a remote profile and embeds the TEAM env var into it</div>
+            <div class="tl">Stores, lists, and removes environment variables used by profiles</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CALLOUT
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="screen" id="screen-2-3">
+      <div class="callout callout-accent animate-in">
+        <div class="callout-icon">&#9889;</div>
+        <div class="callout-content">
+          <span class="callout-title">Skills Compose with Profiles</span>
+          <p>A profile says <strong>WHAT</strong> the agent is &mdash; its role, provider, and system prompt. Skills say <strong>HOW</strong> it should behave in specific situations. A single profile can reference multiple skills, and the same skill can be shared across many profiles. This separation keeps agent definitions clean and behavior reusable.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+<section class="module" id="module-3">
+  <div class="module-content">
+
+    <div class="module-header animate-in">
+      <span class="module-number">03</span>
+      <h1 class="module-title">Automation & Ops</h1>
+      <p class="module-subtitle">Run agents on a schedule, orchestrate them from the outside, and build zero-human-in-the-loop pipelines.</p>
+    </div>
+
+  <!-- Screen 1: Scheduled Flows -->
+  <div class="screen" id="screen-3-1">
+    <h2>Scheduled Flows</h2>
+    <p>
+      Scheduled Flows let you run agent tasks on a cron-like schedule without any human trigger.
+      Define a flow as a Markdown file with YAML frontmatter, register it with the CLI, and CAO's
+      background daemon handles the rest.
+    </p>
+
+    <div class="translation-block animate-in">
+      <div class="translation-code">
+        <span class="translation-label">Flow File (nightly-review.md)</span>
+<pre><code><span class="code-comment">---</span>
+<span class="code-keyword">name</span>: nightly-review
+<span class="code-keyword">schedule</span>: <span class="code-string">"0 2 * * *"</span>
+<span class="code-keyword">agent_profile</span>: code_supervisor
+<span class="code-keyword">provider</span>: claude_code
+<span class="code-comment">---</span>
+
+Review all PRs opened today and
+summarize findings.</code></pre>
+      </div>
+      <div class="translation-english">
+        <span class="translation-label">Plain English</span>
+        <div class="translation-lines">
+          <div class="tl">&nbsp;</div>
+          <div class="tl">Name this flow "nightly-review".</div>
+          <div class="tl">Run every day at 2:00 AM.</div>
+          <div class="tl">Use the code_supervisor profile.</div>
+          <div class="tl">Run inside Claude Code.</div>
+          <div class="tl">&nbsp;</div>
+          <div class="tl">The body becomes the agent's task prompt.</div>
+          <div class="tl">&nbsp;</div>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      The server's background daemon checks every <strong>60 seconds</strong> for flows whose
+      cron expression matches. Sessions are auto-named <code>cao-flow-{name}</code>.
+    </p>
+    <p>
+      CLI commands: <code>cao schedule add FILE</code>, <code>cao schedule list</code>,
+      <code>cao schedule run NAME</code>, <code>cao schedule enable/disable NAME</code>,
+      <code>cao schedule remove NAME</code>.
+    </p>
+    <p>
+      Flows can include a <code>script</code> step that runs first and outputs JSON. If it
+      returns <code>{"execute": false}</code>, the flow is skipped for that cycle — useful for
+      conditional execution based on external state.
+    </p>
+  </div>
+
+  <!-- Screen 2: The Ops MCP Server -->
+  <div class="screen" id="screen-3-2">
+    <h2>The Ops MCP Server</h2>
+    <p>
+      CAO ships two MCP servers with very different purposes. Understanding which is which
+      is essential for building integrations.
+    </p>
+
+    <div class="pattern-cards">
+      <div class="pattern-card" style="border-top: 3px solid var(--color-actor-2);">
+        <h3><code>cao-mcp-server</code></h3>
+        <p><strong>Runs INSIDE agent sessions.</strong></p>
+        <p>Provides tools like <code>handoff</code>, <code>assign</code>, and <code>send_message</code> so agents can orchestrate each other during a workflow.</p>
+        <p class="pattern-metaphor">The internal intercom system between coworkers.</p>
+      </div>
+      <div class="pattern-card" style="border-top: 3px solid var(--color-actor-5);">
+        <h3><code>cao-ops-mcp-server</code></h3>
+        <p><strong>Runs OUTSIDE — for external control.</strong></p>
+        <p>Lets CI/CD pipelines, meta-agents, or scripts manage CAO itself: launch sessions, send messages, read output, shut things down.</p>
+        <p class="pattern-metaphor">The building's reception desk — controls who enters and exits.</p>
+      </div>
+    </div>
+
+    <p><strong>Ops server tools:</strong></p>
+    <ul>
+      <li><code>list_profiles</code> — discover available agent profiles</li>
+      <li><code>install_profile</code> — install a profile by name or URL</li>
+      <li><code>launch_session</code> — start a new CAO session</li>
+      <li><code>send_session_message</code> — deliver a message to a running session</li>
+      <li><code>get_terminal_status</code> — check if a terminal is idle, processing, etc.</li>
+      <li><code>get_terminal_output</code> — read recent terminal output</li>
+      <li><code>read_session_output</code> — read a terminal's captured output by session name</li>
+      <li><code>get_profile_details</code> — get detailed information about a specific profile</li>
+      <li><code>list_sessions</code> — list all active CAO sessions</li>
+      <li><code>get_session_info</code> — get detailed info about a specific session</li>
+      <li><code>shutdown_session</code> — gracefully stop a session</li>
+    </ul>
+  </div>
+
+  <!-- Screen 3: Fully Autonomous Operation -->
+  <div class="screen" id="screen-3-3">
+    <h2>Fully Autonomous Operation</h2>
+    <p>
+      When an agent hits a permission prompt or asks for clarification, it enters
+      <strong>WAITING_USER_ANSWER</strong> status. Normally a human would respond. But the
+      <code>answer_user_prompt</code> tool lets another agent respond programmatically.
+    </p>
+    <p>
+      A supervisor (or another internal agent via the <code>cao-mcp-server</code>) calls
+      <code>answer_user_prompt(terminal_id, answer)</code> to unblock the waiting worker — no
+      human needed. Note: <code>answer_user_prompt</code> is available only through the internal
+      <code>cao-mcp-server</code>, not the ops server. External scripts would need to use the REST API directly.
+    </p>
+
+    <div class="callout callout-accent">
+      <div class="callout-icon">&#9889;</div>
+      <div class="callout-content">
+        <span class="callout-title">Zero-Human-in-the-Loop</span>
+        <p>
+          Combine all three pieces for fully autonomous pipelines:
+          <strong>Scheduled Flows</strong> trigger work on a cron,
+          the <strong>Ops MCP Server</strong> lets external systems monitor and control sessions,
+          and <strong>answer_user_prompt</strong> resolves any agent-to-human blocks automatically.
+          The result: agents that run 24/7 without anyone watching.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 4: Quiz -->
+  <div class="screen" id="screen-3-4">
+    <h2>Check Your Understanding</h2>
+
+    <div class="quiz-container" id="quiz-automation-ops">
+
+      <div class="quiz-question-block" data-correct="cao-ops-mcp-server" data-explanation-right="Correct! The ops server is designed for external orchestration — CI/CD pipelines, scripts, and meta-agents that manage CAO from the outside." data-explanation-wrong="The cao-ops-mcp-server is the one designed for external systems. The cao-mcp-server runs inside agent sessions for inter-agent communication.">
+        <p class="quiz-question"><strong>Which MCP server would a CI/CD pipeline use to launch a CAO session?</strong></p>
+        <div class="quiz-options">
+          <button class="quiz-option" data-value="cao-mcp-server" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>cao-mcp-server — it handles agent orchestration</span>
+          </button>
+          <button class="quiz-option" data-value="cao-ops-mcp-server" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>cao-ops-mcp-server — it is designed for external orchestration</span>
+          </button>
+          <button class="quiz-option" data-value="either" onclick="selectOption(this)">
+            <span class="quiz-option-radio"></span>
+            <span>Either one — they both expose launch_session</span>
+          </button>
+        </div>
+        <div class="quiz-feedback"></div>
+      </div>
+
+      <div style="margin-top: var(--space-6);">
+        <button class="btn btn-primary quiz-check-btn" onclick="checkQuiz('quiz-automation-ops')">Check Answer</button>
+        <button class="btn quiz-reset-btn" onclick="resetQuiz('quiz-automation-ops')">Try Again</button>
+      </div>
+    </div>
+
+    <p style="margin-top: var(--space-8);">
+      <a href="../course/index.html">&larr; Back to the fundamentals course</a>
+    </p>
+  </div>
+
+  </div>
+</section>
+  </main>
+
+</body>
+</html>
