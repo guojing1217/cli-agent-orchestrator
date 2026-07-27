@@ -39,11 +39,11 @@ function HeroBanner() {
               <Link className={styles.primaryButton} to="/docs/intro">
                 Get Started →
               </Link>
-              <Link
+              <a
                 className={styles.secondaryButton}
-                to="/cli-agent-orchestrator/course/index.html">
+                href="pathname:///cli-agent-orchestrator/course/index.html">
                 Interactive Course
-              </Link>
+              </a>
               <Link
                 className={styles.secondaryButton}
                 to="https://github.com/awslabs/cli-agent-orchestrator">

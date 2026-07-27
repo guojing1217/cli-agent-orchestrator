@@ -61,7 +61,7 @@ const config: Config = {
           label: 'Documentation',
         },
         {
-          href: '/cli-agent-orchestrator/course/index.html',
+          href: 'pathname:///cli-agent-orchestrator/course/index.html',
           label: 'Interactive Course',
           position: 'left',
         },
@@ -84,7 +84,7 @@ const config: Config = {
             },
             {
               label: 'Interactive Course',
-              href: '/cli-agent-orchestrator/course/index.html',
+              href: 'pathname:///cli-agent-orchestrator/course/index.html',
             },
           ],
         },
