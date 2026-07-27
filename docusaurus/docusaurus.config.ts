@@ -82,6 +82,10 @@ const config: Config = {
               label: 'Getting Started',
               to: '/docs/intro',
             },
+            {
+              label: 'Interactive Course',
+              href: '/cli-agent-orchestrator/course/index.html',
+            },
           ],
         },
         {
