@@ -41,7 +41,7 @@ function HeroBanner() {
               </Link>
               <a
                 className={styles.secondaryButton}
-                href="pathname:///cli-agent-orchestrator/course/index.html">
+                href="/cli-agent-orchestrator/course/index.html">
                 Interactive Course
               </a>
               <Link
