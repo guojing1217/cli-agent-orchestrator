@@ -1,149 +1,129 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import styles from './index.module.css';
 
 const providers = [
-  {name: 'Claude Code', icon: '⚡'},
-  {name: 'Kiro CLI', icon: '🔶'},
-  {name: 'Codex', icon: '🟢'},
-  {name: 'Kimi CLI', icon: '🌙'},
-  {name: 'Copilot CLI', icon: '🤖'},
-  {name: 'Cursor CLI', icon: '🔵'},
-  {name: 'OpenCode CLI', icon: '🟠'},
-  {name: 'Hermes', icon: '🪶'},
-  {name: 'Antigravity CLI', icon: '💎'},
+  {name: 'Claude Code', color: '#8b5cf6'},
+  {name: 'Kiro CLI', color: '#f59e0b'},
+  {name: 'Codex', color: '#10b981'},
+  {name: 'Kimi CLI', color: '#ec4899'},
+  {name: 'Copilot CLI', color: '#3b82f6'},
+  {name: 'Cursor CLI', color: '#6366f1'},
+  {name: 'OpenCode CLI', color: '#f97316'},
+  {name: 'Hermes', color: '#14b8a6'},
+  {name: 'Antigravity CLI', color: '#06b6d4'},
 ];
 
-const patterns = [
-  {name: 'Handoff', desc: 'Synchronous delegation with context transfer', icon: '→'},
-  {name: 'Assign', desc: 'Async task dispatch to parallel agents', icon: '⇉'},
-  {name: 'Send Message', desc: 'Direct inter-agent communication', icon: '↔'},
+const features = [
+  {
+    title: 'Multi-Agent Orchestration',
+    emoji: '🎯',
+    description:
+      'Coordinate multiple AI agents through Handoff, Assign, and Send Message patterns. Each agent runs in its own isolated tmux window.',
+    gradient: 'linear-gradient(135deg, #e0f2fe, #bae6fd)',
+  },
+  {
+    title: 'Provider Agnostic',
+    emoji: '🔌',
+    description:
+      'Works with 9 providers including Claude Code, Kiro CLI, Codex, Copilot CLI, and Cursor CLI. Mix providers freely in one session.',
+    gradient: 'linear-gradient(135deg, #fae8ff, #e9d5ff)',
+  },
+  {
+    title: 'MCP Native',
+    emoji: '🔗',
+    description:
+      'Built-in MCP server exposes orchestration to any MCP-compatible client. Use CAO as your agentic backbone.',
+    gradient: 'linear-gradient(135deg, #dcfce7, #bbf7d0)',
+  },
+  {
+    title: 'Scheduled Flows',
+    emoji: '⏱️',
+    description:
+      'Define cron-like automated workflows that run multi-agent pipelines on a schedule. Perfect for CI/CD and monitoring.',
+    gradient: 'linear-gradient(135deg, #fef3c7, #fde68a)',
+  },
+  {
+    title: 'Web Dashboard',
+    emoji: '📊',
+    description:
+      'Monitor all agent sessions from a real-time browser dashboard. View output, assign tasks, and track progress.',
+    gradient: 'linear-gradient(135deg, #ede9fe, #ddd6fe)',
+  },
+  {
+    title: 'Zero Infrastructure',
+    emoji: '💻',
+    description:
+      'Runs entirely on your local machine with no cloud dependencies. Install with one command and start orchestrating.',
+    gradient: 'linear-gradient(135deg, #ccfbf1, #99f6e4)',
+  },
 ];
 
-function HeroBanner() {
-  const {siteConfig} = useDocusaurusContext();
+function HeroSection() {
   return (
-    <header className={styles.heroBanner}>
-      <div className={styles.heroGrid} />
-      <div className={styles.heroOrb} />
-      <div className={styles.heroOrb2} />
-      <div className={`container ${styles.heroContent}`}>
-        <div className={styles.heroSplit}>
-          <div className={styles.heroLeft}>
-            <div className={styles.badge}>Open Source Multi-Agent Framework</div>
-            <h1 className={styles.heroTitle}>{siteConfig.title}</h1>
-            <p className={styles.heroSubtitle}>{siteConfig.tagline}</p>
-            <div className={styles.buttons}>
-              <Link className={styles.primaryButton} to="/docs/intro">
-                Get Started →
-              </Link>
-              <a
-                className={styles.secondaryButton}
-                href="/cli-agent-orchestrator/course/index.html">
-                Interactive Course
-              </a>
-              <Link
-                className={styles.secondaryButton}
-                to="https://github.com/awslabs/cli-agent-orchestrator">
-                View on GitHub
-              </Link>
-            </div>
-            <div className={styles.providersList}>
-              {providers.map((p, i) => (
-                <span key={i} className={styles.providerChip}>
-                  <span className={styles.providerIcon}>{p.icon}</span>
-                  {p.name}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div className={styles.heroRight}>
-            <div className={styles.terminal}>
-              <div className={styles.terminalHeader}>
-                <span className={styles.terminalDot} data-color="red" />
-                <span className={styles.terminalDot} data-color="yellow" />
-                <span className={styles.terminalDot} data-color="green" />
-                <span className={styles.terminalTitle}>cao — orchestrator</span>
-              </div>
-              <pre className={styles.terminalBody}>
-<code><span className={styles.terminalComment}># Launch a supervisor session</span>{'\n'}<span className={styles.terminalPrompt}>$</span> cao launch --agents supervisor --session-name main{'\n'}{'\n'}<span className={styles.terminalComment}># Check session status</span>{'\n'}<span className={styles.terminalPrompt}>$</span> cao session status main --workers{'\n'}<span className={styles.terminalOutput}>Session:  main</span>{'\n'}<span className={styles.terminalOutput}>Agent:    supervisor</span>{'\n'}<span className={styles.terminalOutput}>Status:   idle</span>{'\n'}{'\n'}<span className={styles.terminalOutput}>ID       AGENT           PROVIDER    STATUS</span>{'\n'}<span className={styles.terminalOutput}>──────────────────────────────────────────</span>{'\n'}<span className={styles.terminalOutput}>3        auth-dev        claude_code running</span>{'\n'}<span className={styles.terminalOutput}>4        test-writer     kiro_cli    running</span>{'\n'}<span className={styles.terminalOutput}>5        doc-updater     codex       done ✓</span></code>
-              </pre>
-            </div>
-          </div>
+    <header className={styles.hero}>
+      <div className={styles.heroDecoration}>
+        <div className={styles.blob1} />
+        <div className={styles.blob2} />
+        <div className={styles.blob3} />
+      </div>
+      <div className={`container ${styles.heroContainer}`}>
+        <div className={styles.badge}>Open Source Multi-Agent Framework</div>
+        <h1 className={styles.heroTitle}>CLI Agent Orchestrator</h1>
+        <p className={styles.heroTagline}>
+          Lightweight orchestration for multi-agent AI workflows
+        </p>
+        <div className={styles.heroButtons}>
+          <Link className={styles.btnPrimary} to="/docs/intro">
+            Get Started →
+          </Link>
+          <a
+            className={styles.btnSecondary}
+            href="/cli-agent-orchestrator/course/index.html">
+            Interactive Course
+          </a>
+          <Link
+            className={styles.btnSecondary}
+            to="https://github.com/awslabs/cli-agent-orchestrator">
+            GitHub
+          </Link>
+        </div>
+        <div className={styles.providers}>
+          {providers.map((p, i) => (
+            <span
+              key={i}
+              className={styles.providerPill}
+              style={{'--pill-color': p.color} as React.CSSProperties}>
+              <span className={styles.providerDot} />
+              {p.name}
+            </span>
+          ))}
         </div>
       </div>
     </header>
   );
 }
 
-function PatternsSection() {
+function TerminalSection() {
   return (
-    <section className={styles.patterns}>
+    <section className={styles.terminalSection}>
       <div className="container">
-        <div className={styles.patternsGrid}>
-          {patterns.map((p, i) => (
-            <div key={i} className={styles.patternCard}>
-              <div className={styles.patternIcon}>{p.icon}</div>
-              <div>
-                <h4 className={styles.patternName}>{p.name}</h4>
-                <p className={styles.patternDesc}>{p.desc}</p>
-              </div>
+        <div className={styles.terminalWrapper}>
+          <div className={styles.terminal}>
+            <div className={styles.terminalBar}>
+              <span className={styles.dot} data-c="red" />
+              <span className={styles.dot} data-c="yellow" />
+              <span className={styles.dot} data-c="green" />
+              <span className={styles.terminalLabel}>cao — terminal</span>
             </div>
-          ))}
+            <pre className={styles.terminalCode}>
+<code><span className={styles.prompt}>$</span> <span className={styles.cmd}>cao launch</span> <span className={styles.flag}>--agents</span> <span className={styles.val}>code_supervisor</span> <span className={styles.flag}>--session-name</span> <span className={styles.val}>main</span>{'\n'}<span className={styles.prompt}>$</span> <span className={styles.cmd}>cao session send</span> <span className={styles.val}>main</span> <span className={styles.str}>"Implement auth module"</span>{'\n'}<span className={styles.prompt}>$</span> <span className={styles.cmd}>cao session status</span> <span className={styles.val}>main</span> <span className={styles.flag}>--workers</span>{'\n'}<span className={styles.success}>✓ 3 terminals active</span></code>
+            </pre>
+          </div>
         </div>
       </div>
     </section>
-  );
-}
-
-const features = [
-  {
-    title: 'Multi-Agent Orchestration',
-    icon: '🎯',
-    description:
-      'Coordinate multiple AI agents through three patterns: Handoff (sync), Assign (async), and Send Message (direct). Each agent runs in an isolated tmux session.',
-  },
-  {
-    title: 'Provider Agnostic',
-    icon: '🔌',
-    description:
-      'Works with 9 providers including Claude Code, Kiro CLI, Codex, Copilot CLI, Cursor CLI, and more. Mix and match providers in a single workflow.',
-  },
-  {
-    title: 'MCP Native',
-    icon: '🔗',
-    description:
-      'Built-in MCP server exposes orchestration capabilities to any MCP-compatible client. Use CAO as the backbone for your agentic workflows.',
-  },
-  {
-    title: 'Scheduled Flows',
-    icon: '⏱️',
-    description:
-      'Define cron-like automated workflows that run multi-agent pipelines on a schedule. Perfect for CI/CD, monitoring, and recurring tasks.',
-  },
-  {
-    title: 'Web Dashboard',
-    icon: '📊',
-    description:
-      'Monitor and manage all agent sessions from a real-time browser dashboard. View output, assign tasks, and track progress visually.',
-  },
-  {
-    title: 'Zero Infrastructure',
-    icon: '💻',
-    description:
-      'Runs entirely on your local machine with no cloud dependencies. Install with a single command and start orchestrating in seconds.',
-  },
-];
-
-function Feature({title, icon, description}: {title: string; icon: string; description: string}) {
-  return (
-    <div className={styles.feature}>
-      <div className={styles.featureIcon}>{icon}</div>
-      <h3 className={styles.featureTitle}>{title}</h3>
-      <p className={styles.featureDescription}>{description}</p>
-    </div>
   );
 }
 
@@ -151,42 +131,23 @@ function FeaturesSection() {
   return (
     <section className={styles.features}>
       <div className="container">
-        <div className={styles.featuresGrid}>
-          {features.map((props, idx) => (
-            <Feature key={idx} {...props} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function ArchitectureSection() {
-  return (
-    <section className={styles.architecture}>
-      <div className="container">
-        <h2 className={styles.sectionTitle}>How It Works</h2>
-        <p className={styles.sectionSubtitle}>
-          A lightweight layer that sits between you and your AI agents.
+        <h2 className={styles.sectionHeading}>
+          Everything you need to orchestrate AI agents
+        </h2>
+        <p className={styles.sectionSub}>
+          A batteries-included framework for multi-agent coordination.
         </p>
-        <div className={styles.archFlow}>
-          <div className={styles.archStep}>
-            <div className={styles.archStepNumber}>1</div>
-            <h4>Define</h4>
-            <p>Declare agents, roles, and orchestration patterns in YAML or CLI</p>
-          </div>
-          <div className={styles.archArrow}>→</div>
-          <div className={styles.archStep}>
-            <div className={styles.archStepNumber}>2</div>
-            <h4>Orchestrate</h4>
-            <p>CAO manages sessions, routes messages, and tracks state</p>
-          </div>
-          <div className={styles.archArrow}>→</div>
-          <div className={styles.archStep}>
-            <div className={styles.archStepNumber}>3</div>
-            <h4>Deliver</h4>
-            <p>Agents complete tasks in parallel, results flow back to you</p>
-          </div>
+        <div className={styles.featuresGrid}>
+          {features.map((f, i) => (
+            <div
+              key={i}
+              className={styles.featureCard}
+              style={{'--card-bg': f.gradient} as React.CSSProperties}>
+              <div className={styles.featureEmoji}>{f.emoji}</div>
+              <h3 className={styles.featureTitle}>{f.title}</h3>
+              <p className={styles.featureDesc}>{f.description}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -196,11 +157,10 @@ function ArchitectureSection() {
 export default function Home(): React.JSX.Element {
   return (
     <Layout description="Lightweight orchestration for multi-agent AI workflows">
-      <HeroBanner />
+      <HeroSection />
+      <TerminalSection />
       <main>
-        <PatternsSection />
         <FeaturesSection />
-        <ArchitectureSection />
       </main>
     </Layout>
   );
