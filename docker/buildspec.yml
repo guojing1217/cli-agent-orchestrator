@@ -1,0 +1,30 @@
+# CodeBuild spec that builds the CAO node image and pushes it to ECR.
+#
+# Exists because the image must be arm64 (the validation cluster runs Graviton
+# t4g nodes) and building arm64 locally needs a container runtime that may not be
+# present — or may be unable to build natively on an x86 host without QEMU.
+# An ARM_CONTAINER CodeBuild environment builds it natively either way.
+#
+# Required environment variables (set on the project, not here, so the spec
+# carries no account identifiers):
+#   ECR_REGISTRY  e.g. 111122223333.dkr.ecr.us-east-1.amazonaws.com
+#   IMAGE_REPO    e.g. cao-node
+#   IMAGE_TAG     e.g. latest
+version: 0.2
+
+phases:
+  pre_build:
+    commands:
+      - echo "Authenticating to ECR at $ECR_REGISTRY"
+      - aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+  build:
+    commands:
+      - echo "Building $ECR_REGISTRY/$IMAGE_REPO:$IMAGE_TAG for $(uname -m)"
+      - docker build -t "$ECR_REGISTRY/$IMAGE_REPO:$IMAGE_TAG" -f docker/Dockerfile .
+      # Fail the build here rather than in a Pending pod: a missing provider
+      # binary or broken entrypoint is much cheaper to see at build time.
+      - docker run --rm --entrypoint sh "$ECR_REGISTRY/$IMAGE_REPO:$IMAGE_TAG" -c 'command -v mock_cli && command -v cao-server && command -v tmux'
+  post_build:
+    commands:
+      - docker push "$ECR_REGISTRY/$IMAGE_REPO:$IMAGE_TAG"
+      - echo "Pushed $ECR_REGISTRY/$IMAGE_REPO:$IMAGE_TAG"

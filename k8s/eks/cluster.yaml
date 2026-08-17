@@ -1,0 +1,69 @@
+# eksctl config for a throwaway EKS cluster that validates the k8s one-agent-per-pod
+# topology in k8s/ — cross-node `target_host` placement, the CAO_MAX_TERMINALS=1
+# HTTP 429 capacity rejection, and NetworkPolicy enforcement.
+#
+#   eksctl create cluster -f k8s/eks/cluster.yaml
+#   eksctl delete cluster -f k8s/eks/cluster.yaml --disable-nodegroup-eviction
+#
+# NetworkPolicy is the load-bearing control here: cao-server exposes an
+# unauthenticated REST API on 9889 (no TLS, and the built-in MCP/CLI clients do
+# not attach the bearer token the scope gates expect), so pod-level network
+# isolation is the only access-control boundary available in-cluster.
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: cao-eks
+  region: us-east-1
+  # eksctl 0.230's default; in EKS STANDARD_SUPPORT. VPC CNI NetworkPolicy
+  # enforcement needs 1.25+, so this is not the constraint.
+  version: "1.34"
+  tags:
+    Project: cao
+    Purpose: k8s-topology-validation
+    Owner: joeguo
+
+vpc:
+  # Deliberately NOT 10.0.0.0/16: three existing VPCs in this account use that
+  # range, and an overlap would block any future peering.
+  cidr: 10.20.0.0/16
+  # One NAT for the whole cluster — nodes are private and only need egress for
+  # ECR pulls and the EKS control plane.
+  nat:
+    gateway: Single
+
+# Required by the EBS CSI driver's wellKnownPolicies (IRSA) below.
+iam:
+  withOIDC: true
+
+addons:
+  - name: vpc-cni
+    # The whole point of this cluster: without this the NetworkPolicy objects in
+    # k8s/networkpolicy.yaml are accepted by the API server and silently ignored.
+    configurationValues: |
+      {"enableNetworkPolicy":"true"}
+  - name: coredns
+  - name: kube-proxy
+  - name: eks-pod-identity-agent
+  - name: aws-ebs-csi-driver
+    # The worker StatefulSet's volumeClaimTemplates need a working CSI driver, or
+    # every pod stays Pending on an unbound PVC.
+    wellKnownPolicies:
+      ebsCSIController: true
+
+managedNodeGroups:
+  - name: cao-ng
+    # Graviton: mock_cli is a shell script and CAO is pure Python, so arm64 costs
+    # nothing in compatibility and lets finch build natively on this Mac (no QEMU).
+    instanceType: t4g.large
+    amiFamily: AmazonLinux2023
+    desiredCapacity: 2
+    # minSize 0 so the cluster can be parked at zero nodes between test runs
+    # while keeping the control plane and its config intact.
+    minSize: 0
+    maxSize: 3
+    privateNetworking: true
+    volumeSize: 40
+    volumeType: gp3
+    labels:
+      workload: cao

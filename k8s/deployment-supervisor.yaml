@@ -26,10 +26,16 @@ spec:
         app.kubernetes.io/name: cao-supervisor
         app.kubernetes.io/part-of: cao-fleet
     spec:
+      # The image runs as uid/gid 1000 (user `cao`) but a freshly provisioned EBS
+      # volume mounts root:root 0755, so the agent cannot write its own state
+      # directory. fsGroup makes the volume group-owned by 1000 and setgid, which
+      # is what actually lets CAO_HOME_DIR (=/home/cao/.cao) be written.
+      securityContext:
+        fsGroup: 1000
       containers:
         - name: cao-node
           # Same image as workers — role differs by env/config only
-          image: 418295698799.dkr.ecr.ap-southeast-2.amazonaws.com/cao-server:latest
+          image: 831932040055.dkr.ecr.us-east-1.amazonaws.com/cao-node:latest
           ports:
             - containerPort: 9889
               name: http
@@ -79,6 +85,8 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 15
           volumeMounts:
+            # Matches the image's CAO_HOME_DIR, which is what makes this mount
+            # hold real state rather than just a lost+found.
             - name: cao-state
               mountPath: /home/cao/.cao
       volumes:
@@ -98,6 +106,9 @@ metadata:
     app.kubernetes.io/part-of: cao-fleet
 spec:
   accessModes: ["ReadWriteOnce"]
+  # See the note in statefulset-workers.yaml: named explicitly so the PVC does
+  # not silently bind to a legacy gp2 default, or hang Pending with none set.
+  storageClassName: gp3
   resources:
     requests:
       storage: 1Gi

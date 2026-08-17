@@ -36,7 +36,8 @@ FROM python:3.12-slim
 
 # tmux >= 3.3 required by CAO (bookworm ships 3.3a). git for agent workspaces,
 # curl for healthchecks, procps for provider process detection.
-# nodejs + npm for provider CLIs (kiro-cli, claude).
+# nodejs + npm so a downstream image can layer an npm-distributed provider CLI
+# (e.g. @anthropic-ai/claude-code) on top without rebuilding this stage.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         tmux \
@@ -48,8 +49,11 @@ RUN apt-get update \
         npm \
     && rm -rf /var/lib/apt/lists/*
 
-# Install kiro-cli globally (provider CLI for Kiro)
-RUN npm install -g @anthropic-ai/kiro-cli && npm cache clean --force
+# No provider CLI is baked in. Kiro CLI is not distributed on npm (see
+# docs/kiro-cli.md for its installer), and every real provider needs credentials
+# this image must not carry, so provider installation is a downstream concern.
+# The image ships only the credentials-free `mock_cli` provider (below), which is
+# enough to exercise orchestration end to end.
 
 # Never run the (unauthenticated) server as root: anyone who reaches the port
 # gets command execution as this user.
@@ -67,6 +71,19 @@ COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/cao-entrypoint
 USER cao
 WORKDIR /home/cao/workspace
 RUN mkdir -p /home/cao/workspace
+
+# Relocate CAO's state tree to ~/.cao so the VOLUME below actually captures it.
+#
+# WITHOUT THIS the whole persistence story is silently false: CAO defaults
+# CAO_HOME_DIR to ~/.aws/cli-agent-orchestrator, so the SQLite DB, logs, and
+# installed profiles land there — on the container's ephemeral overlay — while
+# the mounted volume at ~/.cao stays empty but for lost+found. Nothing survives
+# a restart, and there is no error to notice; verified on EKS before this line
+# existed (432K of live state on overlay, 0 on the PVC).
+#
+# ~/.cao rather than remounting ~/.aws: a volume over ~/.aws would shadow the
+# AWS credentials real provider CLIs read from that path.
+ENV CAO_HOME_DIR=/home/cao/.cao
 
 # ~/.cao holds SQLite state, logs, and installed profiles — mount a volume/PVC
 # here for persistence across container restarts.

@@ -31,10 +31,28 @@ spec:
         app.kubernetes.io/name: cao-worker
         app.kubernetes.io/part-of: cao-fleet
     spec:
+      # The image runs as uid/gid 1000 (user `cao`) but a freshly provisioned EBS
+      # volume mounts root:root 0755, so the agent cannot write its own state
+      # directory. fsGroup makes the volume group-owned by 1000 and setgid, which
+      # is what actually lets CAO_HOME_DIR (=/home/cao/.cao) be written.
+      securityContext:
+        fsGroup: 1000
+      # Force every worker onto a node that is NOT running the supervisor, so
+      # each `target_host` delegation is a genuine cross-node hop rather than a
+      # same-node one that would pass even if peer routing were broken.
+      # Apply the supervisor first and wait for it to be Ready: this rule is
+      # evaluated when a worker is scheduled, so with no supervisor pod running
+      # yet the workers are unconstrained and may co-locate with it.
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: cao-supervisor
+              topologyKey: kubernetes.io/hostname
       containers:
         - name: cao-node
-          # TODO: Replace with your ECR image URI after push
-          image: 418295698799.dkr.ecr.ap-southeast-2.amazonaws.com/cao-server:latest
+          image: 831932040055.dkr.ecr.us-east-1.amazonaws.com/cao-node:latest
           ports:
             - containerPort: 9889
               name: http
@@ -96,6 +114,8 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 15
           volumeMounts:
+            # Matches the image's CAO_HOME_DIR, which is what makes this mount
+            # hold real state rather than just a lost+found.
             - name: cao-state
               mountPath: /home/cao/.cao
   # Per-pod persistent state (SQLite DB, logs, installed profiles). A PVC per
@@ -107,6 +127,11 @@ spec:
           app.kubernetes.io/part-of: cao-fleet
       spec:
         accessModes: ["ReadWriteOnce"]
+        # Named explicitly rather than relying on the cluster default: on EKS the
+        # in-tree `gp2` class is still the default on older clusters, and an
+        # unset storageClassName on a cluster with no default at all leaves every
+        # PVC Pending with no obvious cause.
+        storageClassName: gp3
         resources:
           requests:
             storage: 1Gi

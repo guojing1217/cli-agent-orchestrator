@@ -9,11 +9,13 @@ resources:
   - service-workers-headless.yaml
   - statefulset-workers.yaml
   - deployment-supervisor.yaml
-  - deployment-fleet-panel.yaml
   - networkpolicy.yaml
+  # deployment-fleet-panel.yaml is deliberately omitted: it needs a SECOND image
+  # (cao-fleet-panel) that this repo has no Dockerfile for, plus a
+  # `cao-panel-secret` Secret that ships in no manifest here. It is an
+  # observability surface, not part of the supervisor/worker topology under test,
+  # so it is out of scope for this validation round.
 
 images:
-  - name: 418295698799.dkr.ecr.ap-southeast-2.amazonaws.com/cao-server
-    newTag: latest
-  - name: 418295698799.dkr.ecr.ap-southeast-2.amazonaws.com/cao-fleet-panel
+  - name: 831932040055.dkr.ecr.us-east-1.amazonaws.com/cao-node
     newTag: latest
