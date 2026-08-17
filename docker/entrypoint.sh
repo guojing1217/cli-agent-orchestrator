@@ -46,8 +46,35 @@ cao init || true
 
 if [ -n "${CAO_INSTALL_PROFILES:-}" ]; then
   for spec in ${CAO_INSTALL_PROFILES}; do
+    # Require the documented profile:provider form. Without this, a bare
+    # "developer" parses to profile=developer AND provider=developer (both
+    # expansions fall back to the whole string), which fails later as an
+    # unknown provider rather than here as a typo.
+    case "${spec}" in
+      *:*) ;;
+      *)
+        echo "[cao-entrypoint] WARN: skipping '${spec}' — CAO_INSTALL_PROFILES entries must be profile:provider"
+        continue
+        ;;
+    esac
+
     profile="${spec%%:*}"
     provider="${spec##*:}"
+
+    # Both values are identifiers; reject anything else before it reaches either
+    # `cao install` or the YAML frontmatter write below. A value containing a
+    # newline would otherwise inject arbitrary keys into the installed profile's
+    # frontmatter — the same class of issue upstream closed for flow creation.
+    # These come from the pod spec, so an attacker who can set them can already
+    # execute code here: this is hygiene, not a privilege boundary.
+    valid=1
+    case "${profile}" in ''|*[!A-Za-z0-9_-]*) valid=0 ;; esac
+    case "${provider}" in ''|*[!A-Za-z0-9_-]*) valid=0 ;; esac
+    if [ "${valid}" -ne 1 ]; then
+      echo "[cao-entrypoint] WARN: skipping '${spec}' — profile and provider must each match [A-Za-z0-9_-]+"
+      continue
+    fi
+
     echo "[cao-entrypoint] installing profile '${profile}' for provider '${provider}'"
     cao install "${profile}" --provider "${provider}" \
       || echo "[cao-entrypoint] WARN: install ${spec} failed (continuing)"
@@ -69,6 +96,11 @@ if [ -n "${CAO_INSTALL_PROFILES:-}" ]; then
 import os, pathlib, re, sys
 
 profile, provider = sys.argv[1], sys.argv[2]
+# Re-checked here, not just in the caller, so this block cannot write a
+# frontmatter key from an unvalidated value if it is ever reused elsewhere.
+for label, value in (("profile", profile), ("provider", provider)):
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", value):
+        raise SystemExit(f"refusing to pin malformed {label} {value!r}")
 # Mirror constants.py: CAO_HOME_DIR wins, else ~/.aws/cli-agent-orchestrator.
 home = os.environ.get("CAO_HOME_DIR", "").strip() or os.path.join(
     os.path.expanduser("~"), ".aws", "cli-agent-orchestrator"
